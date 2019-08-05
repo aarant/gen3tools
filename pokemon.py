@@ -1,6 +1,5 @@
-import sys
-from ctypes import LittleEndianStructure, Union, \
-    c_uint8 as u8, c_uint16 as u16, c_uint32 as u32, memmove, byref, sizeof
+""" Class to represent and manipulate box pokemon. """
+from ctypes import LittleEndianStructure, Union, c_uint8 as u8, c_uint16 as u16, c_uint32 as u32
 # struct BoxPokemon
 # {
 #     u32 personality; 0-4
@@ -137,7 +136,7 @@ class BoxMon(LittleEndianStructure):
             self.secure.raw[i] ^= self.otId
 
     def sub(self, i):  # Substruct helper
-        return self.secure.substructs[perms[self.personality%24][i]]
+        return self.secure.substructs[perms[self.personality % 24][i]]
 
     def calc_checksum(self):
         checksum = 0
@@ -181,12 +180,14 @@ class BoxMon(LittleEndianStructure):
             print('Legal')
 
 
-# Substruct permutations mapping substructN to its order
+# Maps personalities to substruct order lists l
+# Substruct i appears in position l[i]
 perms = {0: [0, 1, 2, 3], 1: [0, 1, 3, 2], 2: [0, 2, 1, 3], 3: [0, 3, 1, 2], 4: [0, 2, 3, 1], 5: [0, 3, 2, 1],
          6: [1, 0, 2, 3], 7: [1, 0, 3, 2], 8: [2, 0, 1, 3], 9: [3, 0, 1, 2], 10: [2, 0, 3, 1], 11: [3, 0, 2, 1],
          12: [1, 2, 0, 3], 13: [1, 3, 0, 2], 14: [2, 1, 0, 3], 15: [3, 1, 0, 2], 16: [2, 3, 0, 1], 17: [3, 2, 0, 1],
          18: [1, 2, 3, 0], 19: [1, 3, 2, 0], 20: [2, 1, 3, 0], 21: [3, 1, 2, 0], 22: [2, 3, 1, 0], 23: [3, 2, 1, 0]}
 
+# maps in-game characters to bytes
 name_map = {'A': 0xBB, 'B': 0xBC, 'C': 0xBD, 'D': 0xBE, 'E': 0xBF, 'F': 0xC0, 'G': 0xC1, 'H': 0xC2, 'I': 0xC3,
             'J': 0xC4, 'K': 0xC5, 'L': 0xC6, 'M': 0xC7, 'N': 0xC8, 'O': 0xC9, 'P': 0xCA, 'Q': 0xCB, 'R': 0xCC,
             'S': 0xCD, 'T': 0xCE, 'U': 0xCF, 'V': 0xD0, 'W': 0xD1, 'X': 0xD2, 'Y': 0xD3, 'Z': 0xD4, ' ': 0x00,
@@ -194,12 +195,12 @@ name_map = {'A': 0xBB, 'B': 0xBC, 'C': 0xBD, 'D': 0xBE, 'E': 0xBF, 'F': 0xC0, 'G
             'h': 0xDC, 'i': 0xDD, 'j': 0xDE, 'k': 0xDF, 'l': 0xE0, 'm': 0xE1, 'n': 0xE2, 'o': 0xe3, 'p': 0xe4,
             'q': 0xe5, 'r': 0xe6, 's': 0xe7, 't': 0xe8, 'u': 0xe9, 'v': 0xea, 'w': 0xeb, 'x': 0xec, 'y': 0xed,
             'z': 0xee, '0': 0xA1, '1': 0xA2, '2': 0xA3, '3': 0xA4, '4': 0xa5, '5': 0xa6, '6': 0xa7, '7': 0xa8,
-            '8': 0xa9, '9': 0xaa, '!': 0xab, '?': 0xac, 'male': 0xb5, 'female': 0xb6, '/': 0xba, '-': 0xae,
-            '..': 0xb0, 'ld_quote': 0xb1, 'rd_quote': 0xb2, 'l_quote': 0xb3, 'r_quote': 0xb4}
+            '8': 0xa9, '9': 0xaa, '!': 0xab, '?': 0xac, '♂': 0xb5, '♀': 0xb6, '/': 0xba, '-': 0xae,
+            '…': 0xb0, '“': 0xb1, '”': 0xb2, '‘': 0xb3, '’': 0xb4}
 r_names = {v: k for k, v in name_map.items()}
 
 
-def analyze(data):
+def analyze(data: bytearray):
     box_mon = BoxMon.from_buffer(data)
     box_mon.decrypt()
     box_mon.sub(0).type0.species = 412
@@ -223,8 +224,12 @@ def analyze(data):
     print(perms[box_mon.personality % 24])
 
 
-if __name__ == '__main__':
+def analyze_loop():
     while True:
         hex_dump = input()
         data = bytearray.fromhex(hex_dump)
         analyze(data)
+
+
+if __name__ == '__main__':
+    analyze_loop()

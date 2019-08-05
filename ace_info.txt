@@ -1,0 +1,212 @@
+break/t 0x080a3dd8  ScriptCmd_createsprite
+break/t 0x0800709a  CreateSpriteAt call in CreateSpriteAndAnimate
+break/t 0x0800709C  CreateSpriteAndAnimate (after createspriteatcall)
+
+break/t 0x08006efc  CreateSpriteAt (start of function)
+break/t 0x08006F30  CreateSpriteAt sprite setting
+break/t 0x08006F70  template callback store
+
+watch/w 0x020383f0  animscriptptr
+break/t 0x080a3ce4  RunAnimScriptCommand
+break/t 0x080A3F24  Final call in visualtask
+break/t 0x080a57f8  ScriptCmd_createsoundtask
+break/t 0x080A584C  final call in soundtask
+
+break/t 0x08076bdc  SetSaveBlocksPointers
+break/t 0x08076BF0  SaveBlock offset in r4
+
+watch/w 0x0202467C  last party pokemon
+break/t 0x08067b4c  CreateMon
+
+DMA Offsets: what is 0x02030400
+00  2nd word, 1st sub, slot 16
+04  1st word, 1st sub, slot 16 !
+08  unused & checksum, slot 16
+0c  otName & markings, slot 16
+10  otName, slot 16?
+14  nickname, language, has species slot 16
+18  nickname (4-6), slot 16
+1c  nickname, slot 16
+20  otId, slot 16
+
+28  3rd word, 4th sub, slot 15
+2c  2nd word, 4th sub, slot 15
+30  1st word, 4th sub, slot 15 !
+34  3rd word, 3rd sub, slot 15
+38  2nd word, 3rd sub, slot 15
+3C  1st word, 3rd sub, slot 15 !
+40  3rd word, 2nd sub, slot 15
+44  2nd word, 2nd sub, slot 15
+48  1st word, 2nd sub, slot 15 !
+4c  nickname, slot 15
+50  2nd word, 1st sub, slot 15
+54  1st word, 1st sub, slot 15 !
+58  unused & checksum, slot 15
+
+60  otName, slot 15
+64  nickname, language, egg, slot 15
+68  nickname, slot 15
+6c  nickname, slot 15
+70  otId, slot 15
+74 personality, slot 15
+78  3rd word, 4th sub, slot 14
+7C  2nd word, 4th sub, slot 14
+
+
+# How ACE works
+calls: LaunchBattleAnimation->PlayerDoMoveAnimation->RunAnimScriptCommand->script
+1. Glitch move 0x1608 triggers an animation script
+2. Byte at 0x02030400 is read to find the script to run.
+  Script 2: createsprite, might be able to be used.
+  Script 3: visualtask, used for ACE.
+  Script 8: end, ends the animation
+  Script 31: soundtask, can also be used for ACE.
+3. Next 4 bytes are read to determine the address to jump to.
+4. Arbitrary code at that address executes.
+5. In order to safely return, the animation must end.
+  Animation can be ended by ensuring the end script is called next, or by setting gAnimScriptActive=0.
+  r4-47, and r0 get pushed onto the stack before the call.
+
+createsoundtask:
+address aa bb cc dd  # bit 0 determines ARM/THUMB mode
+nargs nn # should be 0
+r0: 0
+r3: 03005e28
+r4: 020383f0 # if nargs=0
+r6: address
+lr: return address
+
+createvisualtask:
+address aa bb cc dd  # bit 0 determines ARM/THUMB mode
+priority pp  # this value is put into r7
+nargs nn # determines the number of animation args to read. If nonzero, advances the pointer a lot.
+nextScript ss  # The next script to run in the animation. 8 cancels the animation.
+
+gSaveBlock1Ptr      03005d8c  # contains the real (inc. DMA) address of saveBlock1
+gSaveBlock2Ptr      03005d90
+BattleAnimScriptPtr 020383f0
+gAnimFramesToWait   020383fc  # Number of frames left in the animation
+gAnimScriptActive   020383fd  # If this is set to 0, the animation ends
+gAnimVisualTask     020383fe  # Number of running visual tasks
+DestroyTask         080a909c
+gAnimSoundTask      020383ff  # Should be set to 0
+FullSaveGame        08153430
+r0: 00000000 r1: 080a3f25 r3: 03005e28
+r4: 020383f0/sBattleAnimScriptPtr if nargs==0 else 0203841e+2*nargs?
+r6: jump address r7: priority r8: 00000000
+lr: return address
+
+# True Credits Warp
+r0: 0 r1: 080a584b r3: 03005e28 r4: 020383f0
+r11: 0
+script to run: 82298F5 (put into r0)
+08098f50: RunScript
+GameClear: 08137734
+credits: 08174184
+ScriptContext1_SetupScript: 08098ef8
+Task_Hof_TrySaveData: 081739c4
+Task_Hof_InitMonData: 0817371c
+ADC r12,r1,0x3a     E2A1C1E8 # r12=0x80A5885
+ADC r12,r12,0xe900  E2ACCCE9 # r12=0x80B4185
+
+STH r12,[r4+0xd]    E1C4C0BC # stall animation
+ADC r12,r12,0xc0    E2ACCAC0 # r12=0x08174185
+
+BIC r11,r3,0xe8     E3C3B0E8 # r11=gTasks
+STR r12,[r11]       E5ABC000 # store task
+
+MVN r12,0xe1        e3e0c0e1 # r12=ffffff1e
+BIC r12,0xed        e3ccc6ed # r12=f12fff1e
+
+MOV r10,0xc0>10     E3B0A5C0
+BIC r12,r12,r10>1   E1CCC0EA # r12=e12fff1e
+
+MOV r10,c6>4        e3b0a2c6
+MOV r10,r10<3       e1b0aeea # r10=99
+
+BIC r11,pc          e3cfb000
+STR r12,[r11+r10<3] e7abceea # store bx lr ahead of the PC
+
+
+
+# ARM code, written in pokemon nicknames
+# nn=0
+#
+# B +195 for trainername (ea0000c3)
+# Each instruction is followed by a B +177 (ea0000b1)
+# This skips ahead exactly 9 pokemon
+MOV r11,0x36        e3b0b1d8 # r11=0x36
+BIC r10,r11,0x34    e3cba1d0 # r10=2
+ADC r11,r11,r10<7   e0abbcea # r11=0x136
+SBC r11,r3,r11>1    e0c3b0eb # r11=gSaveBlock1Ptr
+LDR r11,[r11]       e4bbb000 # r11=SaveBlock1
+MOV r12,r10<3       e1b0ceea # r12=16
+STB r12,[r11+r10<1] e7cbcfea # store map group
+ADC r11,r4,0xc      e2a4b2c0 # r11=020383fc
+MOV r12,0x55        e3b0c5dc
+ADC r12,r12,200     e2acc4c8 # r12=ff000000
+STR r12,[r11]       e5abc000 # end animation
+MVN r12,0xe1        e3e0c0e1 # r12=ffffff1e
+BIC r12,0xed        e3ccc6ed # r12=f12fff1e
+BIC r12,r12,r10>5   e1ccc2ea # r12=e12fff1e
+
+MOV r10,c6>4        e3b0a2c6
+MOV r10,r10<3       e1b0aeea # r10=99
+
+BIC r11,pc          e3cfb000
+STR r12,[r11+r10<3] e7abceea # store bx lr ahead of the PC
+
+# pp = 10, nn = ?, r0 = ?, r1 unused, requires specific offset
+sub r3, 0x9c        3b9c # r3=0x03005d8c
+ldr r0, [r3]        6818 # r0=saveBlock1
+strb r7, [r0+4]     7107 # store the map
+str r1, [r6+y]      6031 # Store an 8 so that the next script actually ends
+ldmia sp!, {r4-r7}  bcf0 # Proper return
+ldmia sp!, {r0}     bc01
+bx r0               4700
+
+# pp = 10, nn = 0, r0 = ?
+sub r3, 0x9c        3b9c # r3=0x03005d8c
+ldr r1, [r3]        6819 # r1=saveBlock1
+strb r7, [r1+4]     710f # store the map
+str r7, [r4+0xc]    60e7 # Deactivate script by storing 0 at gAnimScriptActive
+ldmia sp!, {r0-r4}  bc1f # This somehow doesn't clobber the stack
+bx r4               4720 # bypass the loop by returning to runanimscript
+
+# pp = ff, nn = 0, r0 = ?
+sub r3, 0x9c        3b9c
+ldr r0, [r3]        6818
+mov r2, 0x10        2210
+strb r2, [r0+4]     7102
+str r7, [r4+0xc]    60e7
+strb r7, [r4+0xe]   73a7
+bx lr               4770
+
+# pp = ff, nn = 0, r0 = 0
+sub r3, 0x9c        3b9c
+ldr r1, [r3]        6819/ldr r1, [r3+r0]    5819
+mov r2, 0x10        2210
+strb r2, [r1+4]     710a
+strb r0, [r4+0xd]   7360 # De-activate the script
+strb r7, [r4+0xe]   73a7 # Set visual task to ff, so that when it is incremented, it goes back to 0
+bx lr               4770
+
+
+# 6 instructions
+sub r3, 0x9c        3b9c
+ldr r0, [r3]        6818
+mov r2, 0x10        2210
+strb r2, [r0+4]     7102
+str r7, [r4+0xc]   60e7/strb r7, [r4+0xe]   73a7
+bx lr               4770
+
+# Naive
+sub r3, 0x9c        3b9c
+ldr r0, [r3]        6818
+add r0, r0, 0x24    3024
+mov r2, 0x10        2210
+strb r2, [r0]       7002
+mov r2, 0x0b        220b
+strb r2, [r0+1]     7042
+strb r7, [r4+0xc]   60e7
+bx lr               4770

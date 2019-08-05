@@ -1,3 +1,4 @@
 .idea/*
 .ccls-cache/*
 __pycache__/*
+.ropeproject/*

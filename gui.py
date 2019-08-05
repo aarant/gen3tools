@@ -2,8 +2,8 @@ import sys
 
 from base_gui import Ui_MainWindow
 from pokemon import perms, BoxMon, Substruct0, Substruct1, Substruct2, Substruct3
-from seed_tools import seed_at, seed_frame, pids, wild_pids, glitch_move, r_nature
-from draw import draw_pid
+from seed import seed_at, cycles_to, r_nature
+from draw import save_spinda
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
@@ -15,6 +15,8 @@ SUB0_FIELDS = tuple(tup[0] for tup in Substruct0._fields_)
 SUB1_FIELDS = ('move0', 'move1', 'move2', 'move3', 'pp0', 'pp1', 'pp2', 'pp3')
 SUB2_FIELDS = tuple(tup[0] for tup in Substruct2._fields_)
 SUB3_FIELDS = tuple(tup[0] for tup in Substruct3._fields_ if tup[0] not in ('unk', 'isEgg')) + ('subIsEgg',)
+
+pids = wild_pids = lambda *args, **kwargs: None
 
 
 def slot_decorator(ui, field):
@@ -55,7 +57,7 @@ class GuiWindow(Ui_MainWindow):
 
     def update_seed(self):
         seed = int(self.seed.text(), base=16)
-        frame = seed_frame(seed)
+        frame = cycles_to(seed)
         self.frame.setText('%d' % frame)
         self.update_frame(frame=frame)
 
@@ -163,9 +165,9 @@ class GuiWindow(Ui_MainWindow):
         else:
             otId = int(self.aceID.text())
         offset = int(self.scentFrames.text())
-        for frame, pid in glitch_move(otId, frame=700+offset):
-            self.spinda_update(frame)
-            break
+        # for frame, pid in glitch_move(otId, frame=700+offset):
+        #     self.spinda_update(frame)
+        #     break
 
     def spinda_update(self, frame):
         offset = int(self.scentFrames.text())
@@ -173,7 +175,7 @@ class GuiWindow(Ui_MainWindow):
         for i, wpid in enumerate(wild_pids(frame=frame-7, limit=14)):
             if i == 7:
                 center_pid = wpid
-            buffer = draw_pid(wpid)
+            buffer = save_spinda(wpid)
             pixmap = QtGui.QPixmap()
             pixmap.loadFromData(buffer.getbuffer())
             getattr(self, 'spinda%s' % i).setPixmap(pixmap)
