@@ -1,7 +1,56 @@
 """ Tools for Gen 3 Arbitrary Code Execution (ACE). """
 import struct
-from seed import test_double_corrupt, seeds, battle_seeds, method1_mons, wild_mons, r_nature
+from seed import seeds, battle_seeds, method1_mons, wild_mons, r_nature, rand
 from pokemon import perms, BoxMon, r_names
+
+
+def test_double_corrupt(pid: int, otId: int) -> bool:
+    """ Determine if the pid, OTId pair can be used for double corruption.
+
+    Args:
+        pid (int): PID of pokemon to corrupt.
+        otId (int): OTId of trainer.
+
+    Returns:
+        bool: True if the pair can be used, False otherwise.
+    """
+    box_mon = BoxMon()
+    box_mon.personality = pid
+    box_mon.otId = otId
+    box_mon.sub(0).type0.species = 308
+    box_mon.sub(0).type0.experience = 2195
+    box_mon.sub(0).type0.friendship = 70
+    sub1 = box_mon.sub(1).type1
+    sub1.moves[0] = 33
+    sub1.moves[1] = 253
+    sub1.moves[2] = 185
+    sub1.pp[0] = 35
+    sub1.pp[1] = 10
+    sub1.pp[2] = 20
+    sub2 = box_mon.sub(2).type2
+    sub2.attackEV = 22
+    sub2.hpEV = 8
+    sub3 = box_mon.sub(3).type3
+    sub3.metLocation = 28
+    sub3.metLevel = 14
+    sub3.metGame = 3
+    sub3.pokeBall = 2
+    sub3.otGender = 1
+    sub3.unk = 977594907
+    box_mon.checksum = box_mon.calc_checksum()
+    sum1 = box_mon.checksum
+    box_mon.encrypt()
+    box_mon.personality |= 0x40000000
+    box_mon.decrypt()
+    sum2 = box_mon.calc_checksum()
+    box_mon.encrypt()
+    box_mon.otId |= 0x40000000
+    box_mon.decrypt()
+    sum3 = box_mon.calc_checksum()
+    if sum1 == sum2 == sum3 and box_mon.sub(3).type3.isEgg == 0:
+        box_mon.encrypt()
+        return True
+    return False
 
 
 EVS = ('hpEV', 'attackEV', 'defenseEV', 'speedEV', 'spAttackEV', 'spDefenseEV')
@@ -24,6 +73,15 @@ def glitch_move(otId: int, pairs):
         if sub1_p == sub2:  # Attacks is where EVs was, effectively swapping them
             if test_double_corrupt(pid, otId):  # Double corruption possible
                 yield i, pid
+
+
+def corruptible(pid: int, otId: int) -> bool:  # Whether a pid is corruptible
+    sub2 = perms[pid % 24][2]  # EVs position
+    pid2 = pid | 0x04000000
+    sub1_p = perms[pid2 % 24][1]
+    if sub1_p == sub2:  # Attacks is where EVs was
+        return test_double_corrupt(pid, otId)
+    return False
 
 
 # Yields bootstrap pokemon
@@ -131,7 +189,9 @@ def analyze_id(seed: int, otId: int, cycle: int):
     mudkips.sort(key=method1_key)
     print('Mudkip')
     for i, pid, evs in mudkips[:5]:
-        print(f'{i+cycle:>5} {r_nature[pid % 25]} {pid:08x} {evs}')
+        can_corrupt = corruptible(pid, otId)
+        c_str = '!' if can_corrupt else ''
+        print(f'{i+cycle:>5} {r_nature[pid % 25]} {pid:08x}{c_str} {evs}')
     print('Bootstrap')
     triples = list(wild_mons(seed, MUDKIP+10000, 60*60*60))
     pairs = [(t[0], t[2]) for t in triples]
@@ -147,25 +207,34 @@ def analyze_id(seed: int, otId: int, cycle: int):
 
 
 def explore_ids(seed, tid, cycle, limit=70):
+    mudkips = list(method1_mons(seed, MUDKIP, 1000))
+    mudkips.sort(key=method1_key)
+    print('Mudkip')
+    for i, pid, ivs in mudkips[:5]:
+        print(f'{i+cycle:>5} {r_nature[pid % 25]} {pid:08x} {ivs}')
+    print('Mudkip glitch')
+    glitch_kips = filter(lambda t: corruptible(t[1], tid), mudkips)
+    for j, pid, ivs in list(glitch_kips)[:5]:
+        print(f'{j+cycle:>5} {r_nature[pid % 25]} {pid:08x} {ivs}')
     for i, base in enumerate(seeds(seed, limit=limit), 0):
         otId = ((base >> 16) << 16) | tid
         if otId & 0xff000000 == 0x04000000:
             continue
-        print(f'{i+cycle:04d} {otId:08x}')
-        analyze_id(base, otId, cycle+i)
-
-
-def crit_dmg(seed, frame=0, limit=10, chance=0):
-    offset = 3  # 2 frames are skipped, the next is used
-    chances = (16, 8, 4, 3, 2)
-    for base in battle_seeds(seed, frame, limit):
-        rng = (r >> 16 for r in seeds(base, offset))
-        crit = (next(rng) % chances[chance]) == 0
-        for _ in range(6):  # Skip 6 values
-            next(rng)
-        dmg = 100 - (next(rng) % 16)
-        print(f'{base:08x}:{dmg:03d}{"!" if crit else ""}', end=' ')
-    print()
+        print(f'{i+cycle:04d} ID: {otId:08x}')
+        # print('Bootstrap (Wild-nodiff)')
+        # triples = wild_mons(base, MUDKIP+15000, 60*60*60)
+        # pairs = ((t[0], t[2]) for t in triples)
+        # for total, i, pid, evs, address, pos in bootstrap_names(otId, pairs):
+        #     if total < 50:
+        #         box, index = divmod(pos, 30)
+        #         print(f'{i+cycle:>6} {pid:08x} {total} {evs} {address:08x} Box {box+1} {index+1}')
+        print('Bootstrap (Wild-pure)')
+        triples = wild_mons(base, MUDKIP+15000, 60*60*60, diff=True)
+        pairs = ((t[0], t[2]) for t in triples)
+        for total, i, pid, evs, address, pos in bootstrap_names(otId, pairs):
+            if total < 50:
+                box, index = divmod(pos, 30)
+                print(f'{i+cycle:>6} {pid:08x} {total} {evs} {address:08x} Box {box+1} {index+1}')
 
 
 def seek(seed, offset=0, limit=10, chance=0, acc_stage=6, evade=6, move_acc=95):
@@ -219,6 +288,7 @@ cycle = 3009
 tid = 0x8271
 otId = ((id_seed >> 16) << 16) | tid
 MUDKIP = 7095
+good = [(0xfec71a4c, 0xa035, 3000)]
 
 
 if __name__ == '__main__':

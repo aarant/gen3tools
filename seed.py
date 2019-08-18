@@ -3,19 +3,19 @@ from itertools import islice
 from pokemon import BoxMon
 
 
-def seeds(seed=0, frame=None, limit=2**32):
+def seeds(seed=0, frame=0, limit=2**32):
     """ Yields successive seeds up to a limit.
 
     Args:
         seed (int): Seed to start on. Defaults to 0.
-        frame (int): Frames to skip. Defaults to None.
+        frame (int): Frames to skip. Defaults to 0.
         limit (int): Number of seeds to produce. Defaults to 2**32.
     >>> list(seeds(limit=4))
     [0, 24691, 3917380458, 1383151765]
     """
     if frame and seed == 0:  # Use fast seed calculation
         seed = seed_at(frame)
-    elif frame and seed != 0:  # Need to advance manually
+    elif frame and seed != 0:  # Skip manually
         for _ in range(frame):
             seed = 0xffffffff & seed * 0x41c64e6d + 0x6073
     for _ in range(limit):
@@ -23,13 +23,24 @@ def seeds(seed=0, frame=None, limit=2**32):
         seed = 0xffffffff & seed * 0x41c64e6d + 0x6073
 
 
-def seed_at(frame: int) -> int:
-    """ Get the seed that would occur on a frame.
-
-    This only works for a base seed of zero.
+def rand(seed=0, frame=0, limit=2**32):
+    """ Yields successive RNG *values* up to a limit.
 
     Args:
-        frame (int): Frame to find.
+        seed (int): Seed to start on. Defaults to 0.
+        frame (int): Frames to skip. Defaults to 0.
+        limit (int): Number of values to produce. Defaults to 2**32.
+    """
+    return (seed >> 16 for seed in seeds(seed, frame, limit))
+
+
+def seed_at(cycle: int) -> int:
+    """ Get the seed that would occur after a number of cycles.
+
+    This is only valid when the base seed is zero.
+
+    Args:
+        cycle (int): The number of elapsed RNG cycles
 
     Returns:
         int: Seed that occurs on that frame.
@@ -45,8 +56,8 @@ def seed_at(frame: int) -> int:
     b = 0x6073
     # I'm unable to find the webpage I found this method on, but it works.
     res = (a-1)*m
-    return (((pow(a, frame, res)-1) % res)//(a-1)*b) % m
-    return ((a**frame-1)//(a-1)*b) % m
+    return (((pow(a, cycle, res)-1) % res)//(a-1)*b) % m
+    return ((a**cycle-1)//(a-1)*b) % m
 
 
 def cycles_to(seed: int):
@@ -67,7 +78,7 @@ def cycles_to(seed: int):
             return i
 
 
-def choose_land_index(rng):  # pick a wild mon index
+def choose_land_index(rng):  # pick a wild mon index TODO: Move this
     rand = next(rng) % 100
     if rand < 20:
         return 0
@@ -95,24 +106,25 @@ def choose_land_index(rng):  # pick a wild mon index
         return 11
 
 
-def wild_mons(seed=0, frame=0, limit=1000, diff=False, bike=False, rate=20, slots=None):
-    """ Yield (frame, seed, pid) tuples for wild pokemon encounters.
+def wild_mons(seed=0, cycle=0, limit=1000, diff=False, bike=False, rate=20, slots=None):
+    """ Yield (cycle seed, pid) tuples for wild pokemon encounters.
 
     Seed is the value of the RNG at the frame before the tile transition.
 
     Args:
         seed (int): Starting value for RNG. Defaults to 0.
-        frame (int): Frames to skip. Defaults to 0.
-        limit (int): Limit of frames to search through. Defaults to 1000.
+        cycle (int): Cycles to skip. Defaults to 0.
+        limit (int): Limit of cycles to search through. Defaults to 1000.
         diff (bool): If the previous and current metatiles differ. Defaults to False.
         bike (bool): If a bike is being ridden. Defaults to False.
         rate (int): Encounter rate of area.
+        slots (set): Set of allowed wild encounter slots.
     """
-    offset = 2  # 1 frame is skipped, the next is used
+    offset = 2  # Skip 1 frame
     rate *= 16
     rate = (80 * rate // 100) if bike else rate
     rate = min(rate, 2880)
-    for i, base in enumerate(seeds(seed, frame, limit), frame):
+    for i, base in enumerate(seeds(seed, cycle, limit), cycle):
         rng = (r >> 16 for r in seeds(base, offset))
         if diff and not next(rng) % 100 < 60:  # Global encounter check
             continue
@@ -133,122 +145,100 @@ def wild_mons(seed=0, frame=0, limit=1000, diff=False, bike=False, rate=20, slot
         yield i, base, pid
 
 
-def method1_mons(seed=0, frame=0, limit=1000):
-    """ Yields (frame, pid, evs) tuples for method 1 pokemon.
+def method1_mons(seed=0, cycle=0, limit=1000):
+    """ Yields (cycle, pid, ivs) tuples for method 1 pokemon.
 
     Args:
         seed (int): Starting value for RNG. Defaults to 0.
-        frame (int): Frames to skip. Defaults to 0.
-        limit (int): Limit of frames to search through. Defaults to 1000.
+        cycle (int): Cycles to skip. Defaults to 0.
+        limit (int): Limit of cycles to search through. Defaults to 1000.
     """
-    for i, base in enumerate(seeds(seed, frame, limit), frame):
-        rng = [r >> 16 for r in seeds(base, limit=4)]
-        pid = (rng[1] << 16) | rng[0]
-        hp, at, de = rng[2] & 0x1f, (rng[2] & 0x3e0) >> 5, (rng[2] & 0x7c00) >> 10
-        sa, sd, sp = rng[3] & 0x1f, (rng[3] & 0x3e0) >> 5, (rng[3] & 0x7c00) >> 10
+    for i, base in enumerate(seeds(seed, cycle, limit), cycle):
+        rng = rand(base)
+        pid = next(rng) | (next(rng) << 16)
+        value = next(rng)
+        hp, at, de = value & 0x1f, (value & 0x3e0) >> 5, (value & 0x7c00) >> 10
+        value = next(rng)
+        sp, sa, sd = value & 0x1f, (value & 0x3e0) >> 5, (value & 0x7c00) >> 10
         yield i, pid, (hp, at, de, sa, sd, sp)
 
 
-def test_double_corrupt(pid: int, otId: int) -> bool:
-    """ Determine if the pid, OTId pair can be used for double corruption.
+def battle_seeds(seed=0, frame=0, limit=1000):
+    """ Yield success battle seeds. The RNG advances twice per frame in battle.
 
     Args:
-        pid (int): PID of pokemon to corrupt.
-        otId (int): OTId of trainer.
-
-    Returns:
-        bool: True if the pair can be used, False otherwise.
+        seed (int): Starting seed. Defaults to zero.
+        frame (int): Frames to skip. Defaults to 0.
+        limit (int): Number of seeds to yield. Defaults to 1000.
     """
-    box_mon = BoxMon()
-    box_mon.personality = pid
-    box_mon.otId = otId
-    box_mon.sub(0).type0.species = 308
-    box_mon.sub(0).type0.experience = 2195
-    box_mon.sub(0).type0.friendship = 70
-    sub1 = box_mon.sub(1).type1
-    sub1.moves[0] = 33
-    sub1.moves[1] = 253
-    sub1.moves[2] = 185
-    sub1.pp[0] = 35
-    sub1.pp[1] = 10
-    sub1.pp[2] = 20
-    sub2 = box_mon.sub(2).type2
-    sub2.attackEV = 22
-    sub2.hpEV = 8
-    sub3 = box_mon.sub(3).type3
-    sub3.metLocation = 28
-    sub3.metLevel = 14
-    sub3.metGame = 3
-    sub3.pokeBall = 2
-    sub3.otGender = 1
-    sub3.unk = 977594907
-    box_mon.checksum = box_mon.calc_checksum()
-    sum1 = box_mon.checksum
-    box_mon.encrypt()
-    box_mon.personality |= 0x40000000
-    box_mon.decrypt()
-    sum2 = box_mon.calc_checksum()
-    box_mon.encrypt()
-    box_mon.otId |= 0x40000000
-    box_mon.decrypt()
-    sum3 = box_mon.calc_checksum()
-    if sum1 == sum2 == sum3 and box_mon.sub(3).type3.isEgg == 0:
-        box_mon.encrypt()
-        return True
-    return False
-
-
-def berry_master(item=153, frame=800, limit=2**16):  # Finds frames for collecting pomeg berries
-    mod = item-153
-    for i, seed in enumerate(seeds(frame=800, limit=limit), frame):
-        if (seed >> 16) % 10 == mod:
-            print('{:08x} at {}'.format(seed, i))
-
-
-def find_good_sweep():  # Find good quick claw/OHKO sweeps
-    streaks = {}
-    max_streak = 0
-    seed = seed_at(1800)
-    for frame in range(1800, 2**18):  # Explore low numbers of frames right now
-        streak = 0
-        seed1 = seed
-        while True:
-            seed2 = 0xffffffff & seed1 * 0x41c64e6d + 0x6073
-            turn, dmg = seed1 >> 16, seed2 >> 16
-            # Quick Claw needs to activate and OHKO must hit
-            if turn < 0x3333 and (dmg % 100 + 1) <= 30:
-                streak += 1
-                if streak > 2:
-                    pass
-                seed1 = 0xffffffff & seed2 * 0x41c64e6d + 0x6073
-            else:
-                break
-        if streak > 2:
-            print('{} found at frame {}, second {} seed {:08x}'.format(streak, frame, round(frame/60, 1), seed))
-        if streak > max_streak:
-            max_streak = streak
-        if streak > 4:
-            streaks[frame] = streak
-        seed = 0xffffffff & seed * 0x41c64e6d + 0x6073
-    print('Done')
-    print(streaks)
-
-
-def battle_seeds(seed=0, frame=0, limit=1000):
     yield from islice(seeds(seed, frame*2, limit*2), 0, None, 2)
 
 
-def ever_grande_glitch():  # Show all the 0x40 corruptions possible with pomeg glitch
-    corruptions = [0x4b, 0x3f, 0x33, 0x27]
-    offsets = []
-    start = 0x0202a888
-    while start > 0x02026000:
-        if 0x02026c50 < start < 0x02026f00:
-            for c in corruptions:
-                offsets.append(start+c)
-        start -= 100
-    print(' '.join('%08x' % x for x in offsets))
+def crit_dmg_calc(rng, chance=0):
+    """ Calculates the criticality and damage using a seed.
 
+    Args:
+        rng: RNG state, as returned by rand().
+        chance (int): Number of critical stages. Defaults to zero.
+
+    Returns:
+        (crit, dmg) tuple where crit is whether the attack crit, and dmg is the unadjusted damage.
+    """
+    chances = (16, 8, 4, 3, 2)
+    crit = (next(rng) % chances[chance]) == 0
+    for _ in range(6):  # Skip 6 values
+        next(rng)
+    dmg = 100 - (next(rng) % 16)
+    return crit, dmg
+
+
+def acc_calc(rng, acc_stage=6, evade=6, move_acc=95):
+    """ Calculate whether a move will hit using a seed.
+
+    Args:
+        rng: RNG state as returned by rand().
+        acc_stage (int): Attacker's accuracy stages. Defaults to 6.
+        evade (int): Defender's evasion stages. Defaults to 6.
+        move_acc (int): Move accuracy. Defaults to 95.
+
+    Returns:
+        (hit, acc) where hit is whether the attack hits, and acc is the actual calculation.
+    """
+    dividends = (33, 36, 43, 50, 60, 75, 1, 133, 166, 2, 233, 133, 3)
+    divisors = (100, 100, 100, 100, 100, 100, 1, 100, 100, 1, 100, 50, 1)
+    assert len(divisors) == len(dividends) == 13
+    buff = acc_stage + 6 - evade
+    calc = dividends[buff] * move_acc
+    calc //= divisors[buff]
+    acc = (next(rng) % 100) + 1
+    return acc <= calc, acc
+
+
+def acc_seek(seed, frame=0, limit=10, acc_stage=6, evade=6, move_acc=95):
+    offset = 3  # 2 frames are skipped, the next is used
+    for base in battle_seeds(seed, frame, limit):
+        rng = rand(base, offset)
+        hit, acc = acc_calc(rng, acc_stage, evade, move_acc)
+        print(f'{base:08x}:{acc:03d}{"Y" if hit else "N"}', end=' ')
+    print()
+
+
+def dmg_seek(seed, frame=0, limit=10, chance=0):  # Explore critical and damage values
+    offset = 3  # 2 frames are skipped, the next is used
+    for base in battle_seeds(seed, frame, limit):
+        rng = rand(base, offset)
+        crit, dmg = crit_dmg_calc(rng, chance)
+        print(f'{base:08x}:{dmg:03d}{"!" if crit else ""}', end=' ')
+    print()
+
+
+def nocrit_seek(seed, frame=0, limit=10):  # For tutorial battles
+    offset = 3
+    for base in battle_seeds(seed, frame, limit):
+        rng = rand(base, offset)
+        dmg = 100 - (next(rng) % 16)
+        print(f'{base:08x}:{dmg:03d}', end=' ')
+    print()
 
 nature_map = {'hardy': 0, 'lonely': 1, 'brave': 2, 'adamant': 3, 'naughty': 4, 'bold': 5, 'docile': 6,
               'relaxed': 7, 'impish': 8, 'lax': 9, 'timid': 10, 'hasty': 11, 'serious': 12,
@@ -258,15 +248,6 @@ r_nature = {v: k for k, v in nature_map.items()}
 
 gender_thresholds = {'1:7': 225, '1:3': 191, '1:1': 127, '3:1': 63, '7:1': 31}
 
-
-# Help display
-# Absolute lowest frame possible is around 650 ish
-# Banette offset is 267 from target frame
-# Oddish offset is 267 from target frame
-otId = 0x0d59efe7
-print('RNG is at address 03005D80')
-print('RNG cycle count at 020249c0')
-print('gRandomTurnNumber is at 02024330')
 
 if __name__ == "__main__":
     import doctest

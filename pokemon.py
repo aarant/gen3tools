@@ -1,64 +1,5 @@
 """ Class to represent and manipulate box pokemon. """
 from ctypes import LittleEndianStructure, Union, c_uint8 as u8, c_uint16 as u16, c_uint32 as u32
-# struct BoxPokemon
-# {
-#     u32 personality; 0-4
-#     u32 otId; 4-8
-#     u8 nickname[POKEMON_NAME_LENGTH]; 8-18
-#     u8 language; 18
-#     u8 isBadEgg:1; 19
-#     u8 hasSpecies:1; 19
-#     u8 isEgg:1; 19
-#     u8 unused:5; 19
-#     u8 otName[PLAYER_NAME_LENGTH]; 20-27
-#     u8 markings; 27
-#     u16 checksum; 28-30
-#     u16 unknown; 30-32
-#     union
-#     {
-#         u32 raw[12];
-#         union PokemonSubstruct substructs[4];
-#     } secure;
-#
-# struct PokemonSubstruct3
-# {
-#  /* 0x00 */ u8 pokerus;
-#  /* 0x01 */ u8 metLocation;
-#
-#  /* 0x02 */ u16 metLevel:7;
-#  /* 0x02 */ u16 metGame:4;
-#  /* 0x03 */ u16 pokeball:4;
-#  /* 0x03 */ u16 otGender:1;
-#
-#  /* 0x04 */ u32 hpIV:5;
-#  /* 0x04 */ u32 attackIV:5;
-#  /* 0x05 */ u32 defenseIV:5;
-#  /* 0x05 */ u32 speedIV:5;
-#  /* 0x05 */ u32 spAttackIV:5;
-#  /* 0x06 */ u32 spDefenseIV:5;
-#  /* 0x07 */ u32 isEgg:1;
-#  /* 0x07 */ u32 altAbility:1;
-#
-#  /* 0x08 */ u32 coolRibbon:3;
-#  /* 0x08 */ u32 beautyRibbon:3;
-#  /* 0x08 */ u32 cuteRibbon:3;
-#  /* 0x09 */ u32 smartRibbon:3;
-#  /* 0x09 */ u32 toughRibbon:3;
-#  /* 0x09 */ u32 championRibbon:1;
-#  /* 0x0A */ u32 winningRibbon:1;
-#  /* 0x0A */ u32 victoryRibbon:1;
-#  /* 0x0A */ u32 artistRibbon:1;
-#  /* 0x0A */ u32 effortRibbon:1;
-#  /* 0x0A */ u32 giftRibbon1:1;
-#  /* 0x0A */ u32 giftRibbon2:1;
-#  /* 0x0A */ u32 giftRibbon3:1;
-#  /* 0x0A */ u32 giftRibbon4:1;
-#  /* 0x0B */ u32 giftRibbon5:1;
-#  /* 0x0B */ u32 giftRibbon6:1;
-#  /* 0x0B */ u32 giftRibbon7:1;
-#  /* 0x0B */ u32 fatefulEncounter:4;
-#  /* 0x0B */ u32 obedient:1;
-# };
 
 
 class Substruct0(LittleEndianStructure):  # Growth substructure
@@ -101,11 +42,40 @@ class Substruct3(LittleEndianStructure):  # Miscellaneous
     _fields_ = [('pokerus', u8), ('metLocation', u8), ('metLevel', u16, 7), ('metGame', u16, 4), ('pokeBall', u16, 4),
                 ('otGender', u16, 1), ('unk', u32, 30), ('isEgg', u32, 1), ('altAbility', u32, 1)]
 
+    @property
+    def hpIV(self):
+        return (self.unk >> 0) & 0x1f
+
+    @property
+    def attackIV(self):
+        return (self.unk >> 5) & 0x1f
+
+    @property
+    def defenseIV(self):
+        return (self.unk >> 10) & 0x1f
+
+    @property
+    def speedIV(self):
+        return (self.unk >> 15) & 0x1f
+
+    @property
+    def spAttackIV(self):
+        return (self.unk >> 20) & 0x1f
+
+    @property
+    def spDefenseIV(self):
+        return (self.unk >> 25) & 0x1f
+
+
+
     def __str__(self):
         return '\n'.join('{}: {}'.format(k, v) for k, v in self.dump().items())
 
     def dump(self):
-        return {tup[0]: '%d' % getattr(self, tup[0]) for tup in self._fields_}
+        fields = ('hpIV', 'attackIV', 'defenseIV', 'speedIV', 'spAttackIV', 'spDefenseIV')
+        d = {tup[0]: '%d' % getattr(self, tup[0]) for tup in self._fields_ if tup[0] != 'unk'}
+        d.update({iv: '%d' % getattr(self, iv) for iv in fields})
+        return d
 
 
 class SubstructUnion(Union):
@@ -228,7 +198,10 @@ def analyze_loop():
     while True:
         hex_dump = input()
         data = bytearray.fromhex(hex_dump)
-        analyze(data)
+        mon = BoxMon.from_buffer(data)
+        mon.decrypt()
+        print(mon.sub(3).type3.dump())
+        mon.export()
 
 
 if __name__ == '__main__':

@@ -22,6 +22,10 @@
 | sound task count | 020383ff |
 | gTasks | 03005e00 |
 | load animation | 080A3B58 |
+| CalculateBoxMonChecksum | 08068c78 |
+
+## Pomeg glitching
+- starts at 0202A888, goes down by 100 (0x64)
 
 RNG initially lags 273 frames, but this diverges over time.
 
@@ -111,23 +115,8 @@ gMoveResultFlags: MISSED is 1
             1. PickWildMonNature 1
             2. CreateMonWithNature >2
 
-## Signature pokemon
-- Roxanne: Probopass
-- Brawly: Medicham
-- Wattson: Manectric
-- Flannery: Magcargo/Torkoal
-- Norman: Slaking
-- Winona: Altaria
-- Tate&Liza: Lunatone&Solrock
-- Juan/Wallace: Whiscash/Politoed/Milotic
-- Sidney: Shiftry
-- Phoebe: Banette/Dusknoir
-- Glacia: Glalie/Froslass
-- Drake: Salamence/Flygon
-- Steven: Metagross
-- Archie: Sharpedo
-- Maxie: Camerupt
-- Zinnia: Whismur/Salamence
+## Youngster Calvin
+- +1 AT
 
 ## Aqua Grunt
 - +1 AT
@@ -144,18 +133,92 @@ gMoveResultFlags: MISSED is 1
 ## Aqua Grunt
 - +1 AT
 
+## Brendan 2
+- +2 SP
 
 ## Brawly
 - +1 HP, +1 AT, +1 SP
 
+## Aqua Grunts
+- +2 AT, +2 SP
+
+## Pokefan Isabel
+- +2 SP
+
+## Pokefan Kaleb
+- +2 SP
+
+## Brendan 3
+- +1 SA, +3 SP
+
+## Triathlon Alyssa
+- +1 SA
+
+## Psychic Edward
+- +1 SA
+
+## Wally
+- +1 SA
+
+## Youngster Ben
+- +1 HP, +1 SP
+
 ## Wattson
 - +2 SA, +4 SP
+
+## Winstrates?
+- Victor: +2 SP
+- Victoria: +1 SA
+- Vivi: +3 HP, +1 SA
+- Vicky: +1 SP
+- Total: +3 HP, +2 SA, +3 SP
+
+## Hiker Lucas
+- +1 DE, +1 SA
+
+## Hiker Mike
+- +1 AT, +2 DE
+
+## Magma Grunts
+- +1 SA, +1 SP
+
+## Tabitha
+- +1 AT, +2 SA, +1 SP
+
+## Maxie
+- +3 AT, +1 SA, +1 SP
 
 ## Flannery
 - +1 AT, +2 DE, +3 SA
 
+## Petalburg gym rooms
+- Speed: +2 SP, can take confusion or defense
+- Accuracy: +1 HP, +1 SP, can take defense or recovery
+- Confusion: +1 SA, can take Strength
+- Defense: +3 HP, can take Strength or OHKO
+- Recovery: +1 HP, can take OHKO
+- Strength: +2 AT
+- OHKO: +2 SP
+- Speed, Defense, Strength: +3 HP, +2 AT, +2 SP
+- Speed, Confusion, Strength: +2 AT, +1 SA, +2 SP
+
 ## Norman
 - +3 HP, +1 SA, +4 SP
+
+## Rose & Deandre
+- +1 HP, +1 DE, +2 SA, +2 SP
+
+- Total: (9, 14)
+- SCS: (6, 14)
+- 3 proteins, 1 HP Up: (16, 44)
+
+HP: Marill +2, Jigglypuff (+2)
+AT: Nuzleaf (Route 114) +2, Solrock (Meteor Falls) +2
+DE: Silcoon, Cascoon, Skarmory +2
+SA: Magneton (New Mauville) +2
+SD: Lombre (Route 114) +2
+SP: Golbat (Meteor Falls), Electrode (New Mauville) +2, Linoone (118) +2
+
 
 ## Move ACE
 - Glitch move `0x1608` reads from 02030400 (Box 12, slot 15)
@@ -169,7 +232,7 @@ gMoveResultFlags: MISSED is 1
 r0: 0 r1: 080a584b r3: 03005e28 r4: 020383f0
 
 ### Credits Warp
-- Requires trainer name to be the jump
+- Requires trainer name to be the jump (+9 pokemon)
 1. Set task to SetCallback2AfterHallOfFameDisplay
 2. Hang animation
 3. Return
@@ -188,6 +251,45 @@ MOV r10,c6>4        e3b0a2c6
 MOV r10,r10<3       e1b0aeea # r10=99
 BIC r11,pc          e3cfb000
 STR r12,[r11+r10<3] e7abceea # store bx lr ahead of the PC
+```
+
+## Input Buffer
+gSoftResetDisabled: 03002700
+REG_KEYINPUT: 04000130
+gMain: 030022c0
+callback1: 030022c0
+vBlankCallback: 030022cc
+heldKeysRaw: 30022e8
+```
+bootstrap: @ r0: 0 r1: 080a584b r3: 03005e28 r4: 020383f0 r6: addr
+  MOV r12,r1>>1 @ r12=04052c25
+  ADC r11,r12,0xB @ r11=04052c30
+
+  ADC r11,0xD500 @ r11=04060130
+  BIC r11,0xe0000 @ r11=04000130 (REG_KEYINPUT)
+
+  STR r11,[r5] @ store REG_KEYINPUT
+  ADC r12,0xEB000000 @ r12=EF052C25
+
+  BIC r11,pc
+  STR r12,[r11+r10<3] @ store SWI #5 ahead of the PC
+loop:
+  SWI #5        EF050000
+  LDR r11,[r5] @ r11=REG_KEYINPUT
+
+  LDB r11,[r11] @ r11=keys
+  LDR r12,[r6] @ r12=target
+
+  SBC r12,r12,1 @ decrement
+  STB r11,[r12] @ write byte
+
+  STR r12,[r6] @ write new target
+  xx
+
+  xx
+  xx
+
+  yy
 ```
 
 ## Summary ACE??
@@ -234,3 +336,21 @@ STR r12,[r11+r10<3] e7abceea # store bx lr ahead of the PC
                   TextPrinter: 0202018C
                   0800587A: character is read
                   08005C14: CopyGlyphToWindow
+
+## Signature pokemon
+- Roxanne: Probopass
+- Brawly: Medicham
+- Wattson: Manectric
+- Flannery: Magcargo/Torkoal
+- Norman: Slaking
+- Winona: Altaria
+- Tate&Liza: Lunatone&Solrock
+- Juan/Wallace: Whiscash/Politoed/Milotic
+- Sidney: Shiftry
+- Phoebe: Banette/Dusknoir
+- Glacia: Glalie/Froslass
+- Drake: Salamence/Flygon
+- Steven: Metagross
+- Archie: Sharpedo
+- Maxie: Camerupt
+- Zinnia: Whismur/Salamence
