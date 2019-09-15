@@ -1,4 +1,4 @@
-from seed import method1_mons, r_nature, seeds, rand, nature_map, dmg_seek, acc_seek
+from seed import method1_mons, r_nature, seeds, rand, nature_map, dmg_seek, acc_seek, wild_mons
 from pokemon import BoxMon, perms
 
 
@@ -56,17 +56,18 @@ def mudkip_key(t):  # Key for ranking Mudkip PIDs
     elif nature == 16:  # Mild
         nature = 1
     elif nature == 19:  # Rash
-        nature = 2
+        nature = 0
     else:
-        nature = 3
+        nature = 2
     ivs = tuple(31-iv for iv in ivs)  # Prefer higher IVs
-    prefer = (ivs[3], ivs[1], ivs[5], ivs[4], ivs[2], ivs[0])  # sa, at, sp, sd, de, hp
+    prefer = (0 if ivs[3] < 2 else 10, ivs[1], ivs[5], ivs[2], ivs[4], ivs[0])  # sa, at, sp, de, sp, hp
     # prefer = (ivs[4], ivs[1], ivs[3], ivs[5], ivs[2], ivs[0])  # sa, at, sp, sd, de, hp (old)
     return (nature,) + prefer + (i,)
 
 
 def glitch_mudkip(seed, otId, cycle, limit=600):  # Print good mudkip candidates
-    offset = 6018
+    offset = 6018  # Approximate number of cycles from ID generation to Mudkip
+    offset = 8606-2641+3  # 5968, 1 character name
     inp_offset = -3
     candidates = []
     for i, pid, ivs in method1_mons(seed, offset, limit):
@@ -126,17 +127,39 @@ def ralts_seek(seed, cycle, limit=600):
     for i, pid, ivs in candidates[:10]:
         print(f'{i+cycle-offset} {pid:08x} {r_nature[pid % 25]} {ivs}')
 
-# 0cbe8210 9b1c
-# 8975 b2a8c6e9 quiet (17, 31, 3, 23, 16, 26)
 
-# 1981bcf6 2aed
-# 8822 1ea3ba4e quiet (25, 23, 22, 19, 31, 31)
-
-# 9dd097ca 54b6 9dd054b6
-# 8762 b5d405b7 mild (25, 21, 6, 21, 26, 31)
-
-# abefc4e8 8274 abef8274
+# abefc4e8 8274 abef8274 <- old run
 # 8750 3e239481 rash (16, 31, 24, 30, 5, 23)
+
+# new run
+# 8d09cd33 015a 8d09015a
+# 8823 224ab97e rash (11, 29, 18, 30, 10, 13)
+
+# a81e3fce 6198 a81e6198
+# 8793 9f25f709 quiet (23, 28, 11, 30, 12, 17)
+
+# 1445cb24 4c79 14454c79
+# 8778 22d07e1f rash (17, 31, 15, 29, 4, 10)
+
+# 9c87095d 4c86 9c874c86 (1 r press)
+# 8772 19af1896 rash (22, 31, 12, 30, 23, 29)
+
+# a8647611 0153 a8640153 (l, r)
+# 8695 8fd82cd8 rash (12, 30, 23, 31, 5, 10)
+
+b = ['81 94 23 3e 74 82 ef ab 57 ff ff ff ff ff 00 08',
+     '4c 7d 01 02 0f 00 00 ea ff ff 00 00 e2 91 00 00',
+     'f7 10 ca 85 f3 16 cc 95 f5 16 cc 95 f5 06 49 34',
+     '05 f5 27 9e f5 16 cc 95 0c 16 99 94 48 16 fb 95',
+     'fa 13 c6 80 e9 17 7b 95 b3 30 cc 95 f5 83 cc 95']
+
+def pomeg_corrupt(addr, pid=0, tid=0):
+    offset = 4 + 4 + 10 + 1 + 1 + 7 + 1 + 2 + 2
+    sub_length = 3*4
+    egg_offset = 1 + 1 + 2
+    pos = perms[pid % 24][3]
+    egg_addr = addr + offset + pos*sub_length + egg_offset
+    return egg_addr
 
 
 if __name__ == '__main__':
@@ -145,8 +168,25 @@ if __name__ == '__main__':
     # otId = ((seed >> 16) << 16) | tid
     # print(f'{seed:08x} {tid:04x} {otId:08x}')
     # glitch_mudkip(seed, otId, 2726)
-    # ralts_seek(0xda3b0abd, 30279, 60*4)
-    # nocrit_seek(0xf6f7bdf80, limit=20)
-    acc_seek(0xfb299337, move_acc=80, limit=20)
-    print()
-    dmg_seek(0x8a5d8b46, limit=20)
+    # for i in range(10):
+    #     addr = 0x0202A52C-100*i
+    #     egg_addr = pomeg_corrupt(addr)
+    #     print(f'{addr:08x} {egg_addr:08x}')
+    # tried = [0xb5ca, 0x0334, 0x4c83, 0x7d5c, 0xcbc8, 0x066b, 0x4ba9, 0x88d4,
+    #          0xd18c, 0x1aca, 0x6409, 0xb2bc, 0x0152, 0x41ae, 0x8a37, 0xd24e,
+    #          0x71e4, 0x71ea, 0xb5c0, 0x032a, 0x4c79, 0x71e3, 0xb5be, 0x0337,
+    #          0x4c7b, 0x7d63, 0xcbc4, 0x0666, 0x88d3, 0xd180, 0x1acf, 0x6413,
+    #          0x71e2, 0xb5c9, 0x0330, 0x4c86, 0x7d5d, 0xcbc9, 0x066f, 0x4ba8,
+    #          0x88ce, 0x640d, 0xb2c2, 0x0155, 0x41a3, 0x8a3b, 0xd247, 0x1b9f,
+    #          0xb5c6, 0x0339, 0x4c7d, 0x7d66, 0xcbc1, 0x0672, 0x4b9f, 0x88cb,
+    #          0xd18f, 0x1acd, 0x6404, 0xb2c5, 0x0153, 0x41ad, 0x8a38, 0xd250,
+    #          0xb5c7, 0x4c84, 0xcbcd, 0x4ba2, 0x88cc, 0xd189, 0x1ac8, 0x640c,
+    #          0x032f, 0xcbc7, 0x0668, 0x4ba5, 0x88d1, 0xd185, 0x1ad3, 0x640a,
+    #          0x0336, 0xcbca, 0x88c8, 0xd188, 0x014c, 0x41a9, 0x8a40, 0xd24c]
+    # wally_zigzagoon(0x3a9bffd7, 29746)
+    # print()
+    # ralts_seek(0xf11aa2d9, 30068)
+    for i in range(10):
+        addr = 0x0202A52C-100*i
+        egg_addr = pomeg_corrupt(addr)
+        print(f'{addr:08x} {egg_addr:08x}')

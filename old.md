@@ -1,6 +1,7 @@
 # Emerald (J) TAS info
-ID: a8640153
-Mudkip: 8fd82cd8 (12, 30, 23, 31, 5, 10)
+ID: f2c73422
+Mudkip PID: 9185C80D
+pooch: b19006ec
 trainer: そ  v EA00000F B+15
 glitch id: 0x3110 targets 02330000 (Box 12 slot 13-14)
 
@@ -47,89 +48,87 @@ glitch id: 0x3110 targets 02330000 (Box 12 slot 13-14)
 
 ## Mudkip generation
 - ~6018 cycles from ID generation
+- Lost about 100 frames
 - 3c/2f after A press
 - +25 frames
 - (0, 0, 0, 0, 0, 1)
 
 ## Brendan 1
-- Get hit by Pound twice, crit twice to win
-- +10
+- +25 frames
 - (0, 0, 0, 0, 0, 2)
 
 ## Youngster Calvin
-- Tackle, !Tackle
-- +13
+- +5 frames
 - (0, 1, 0, 0, 0, 2)
 
 ## Wally Tutorial
-- Run in the grass near the spinner to advance RNG quickly
 1. PutZigzagoonInPlayerParty (just after exiting gym)
   - Generated via method 1
 2. StartWallyTutorialBattle (just after message)
    1. CreateMaleMon (loops otId & personality until it's male)
       1. CreateMon
         fixed personality, generates IV
+- +200 frames
+- TODO: Save frames by stalling in calvin's battle
 
 ## Aqua Grunt
-- !Tackle, !Tackle, !Tackle
-- +30
+- +39 frames
 - (0, 2, 0, 0, 0, 2)
 
 ## Youngster Josh
-- !Mud Slap, !Mud Slap, !Mud Slap
-- +54
+- +64 frames
 - (0, 2, 1, 0, 0, 2)
 
 ## Roxanne
-- Water Gun, Water Gun, Water Gun, !Water Gun
-- +15
+- +14 frames
 - (0, 2, 4, 0, 0, 2)
 
 ## Nickname Abra
-- Must have at least 23 HP IVs
-- 1F 09 18 03 02 FF (Box 1 name; THUMB) (まけねうい)
+- +5 frames
+- 1f 50 00 33 02 ff (Box 12 slot 14/15) (まっ ぉい)
 
 ## Hiker Devan
 - (0, 2, 6, 0, 0, 2)
 
 ## Aqua Grunt
-- !Water Gun
 - (0, 3, 6, 0, 0, 2)
 
 ## Brawly
-- !Water Gun x 6
+- +135
 - (1, 4, 6, 0, 0, 3)
 
 ## Aqua Grunts
+- +7
 - (1, 6, 6, 0, 0, 4)
 
 ## Pokefan Isabel
+- +40
 - (1, 6, 6, 0, 0, 6)
 
 ## Pokefan Kaleb
+- +5
 - (1, 6, 6, 0, 0, 8)
 
 ## Brendan 3
-- Mud Shot, !Mud Shot, !Mud Shot, !Tackle
+- +99
 - (1, 6, 6, 1, 0, 11)
 
 ## Triathlon Alyssa
-- Water Gun
 - (1, 6, 6, 2, 0, 11)
 
 ## Psychic Edward
-- Water Gun
+- +2
 - (1, 6, 6, 3, 0, 11)
 
 ## Wally
-- Water Gun
 - (1, 6, 6, 4, 0, 11)
 
 ## Youngster Ben
-- !Mud Shot, Mud Shot
+- +6
 - (2, 6, 6, 4, 0, 12)
 
 ## Wattson
+- +41
 - (2, 6, 6, 6, 0, 16)
 
 ## Hiker Lucas
@@ -178,17 +177,36 @@ glitch id: 0x3110 targets 02330000 (Box 12 slot 13-14)
 - (2, 18, 11, 15, 0, 21)
 
 ## Norman
-- +3 HP, +1 SA, +4 SP◘
+- +3 HP, +1 SA, +4 SP
+- 3rd protein, 2nd HP Up
 - (5, 18, 11, 16, 0, 25)
 
-## Catch pokemon
-- Kill 1 Poochyena
+## Ins 1
 - (5, 19, 11, 16, 0, 25)
+- E5B65190 (90 51 B6 E5) (ゾア♀q)
 
-## Teach Surf
+## Ins 2
+- 9F050000 (00 00 05 9F) (  おポ)
+
+## Ins 3
+- E5951000 (00 10 95 E5) ( たドq)
+
+## Ins 4
+- E4C61001 (01 10 C6 E4) (あたLp)
+
+## Ins 5
+- E2110C03 (03 0C 11 E2) (うしちn)
+
+## Ins 6
+- 04000130 (30 01 00 04) (ぃあ え)
+
+## Ins 7
+- 143F0148 (48 01 3F 14) (ぶあぜと)
+
+## Teach Surf & Facade
 
 ## Elixir & HP Up 2
-- Elixir: Route 110 (not necessary)
+- Elixir: Route 110
 - HP Up: Route 111
 
 ## Rose & Deandre
@@ -196,33 +214,41 @@ glitch id: 0x3110 targets 02330000 (Box 12 slot 13-14)
 - (6, 19, 12, 18, 0, 27)
 - Abra: 1 HP EVs
 
-## Berry Master
-- 1 Pomeg & 1 Tamato
-- Order: Pokemon Abra Marshtomp
+## Pomeg Berries
+- only need 1
+- switch Abra into first
+
+## Marill
+- Abra: 3 HP EVs
 
 ## Route 105/Protein 3
 - Use all vitamins
-- Use Tamato berry on Marshtomp
-- Knock out pokemon, bring Abra to 1 HP, switch to Marshtomp
+- Knock out 2 Poochyena & bring Abra to 1 HP
+- Switch Marshtomp into first
+
+## Route 102
+- Knock out 2 Zigzagoon
 
 ## Expected EVs
 HP-AT DE-SP SA-SD
-3110 110c 0012
-- (16, 49, 12, 18, 0, 17)
+3110 1d0c 0012
+- (16, 49, 12, 18, 0, 29)
 
-## Deposit Marshtomp
+## First Deposit
 - Put Marshtomp in Box 2 slot 24
+- Deposit conscious Poochyena
+
+## Second deposit
+- Enter a battle, then deposit first fainted pokemon
 
 ## Glitzer Popping
 - Use pomeg berry on Abra
-- Corruption target: 0202a574
 - Corrupt PID
 - Corrupt TID
 
 # ACE Prep
-- Put Marshtomp in party
-- Put Abra in Box 12 Slot 14
-- Rename boxes
+- Put Mudkip in party
+- Put Mudkip and all Poochyena in Box 12 Slot 14
 - Use Elixir on Mudkip
 - Enable animations!
 
@@ -310,14 +336,14 @@ B Box3          E004
 Box2: xx xx xx 30 01 00 04 (ぃぃぃぃあ え)
 .space 3
 .4byte 0x04000130 @ REG_KEYINPUT
-Box3: @ 29 68 71 77 01 4B 04 E0 (るネムラ ゥぽ えl)
+Box3: @ 29 68 71 77 81 4F 04 E0 (るネムラゥぽえl)
 LDR r1,[r5]     6829 @ r1=keys
 STRB r1,[r6]    7031 @ write keys
-LDR r3,[pc,#4]  4B01 @ r3=0x300
+LDR r3,[pc,#4]  4F81 @ r3=0x300
 B Box5          E004
-Box4: @ xx 00 00 (  う)
+Box4: @ xx 00 03 00 00 (  う  )
 .space 1
-.2byte 0x300
+.4byte 0x00000300
 Box5: @ 01 36 19 42 00 D0 20 47 (あょのぢ Vみび)
 ADD r6,#1       3601
 TST r1,r3       4219 @ Z=L&R

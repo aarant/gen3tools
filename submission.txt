@@ -1,0 +1,165 @@
+%%TOC%%
+
+!!! Description
+Emulator used: mGBA
+
+!!! Objectives
+* Starts from scratch; no save data
+* Completes the game as fast as possible
+* Heavy RNG Manipulation
+* Corrupts RAM
+* Abuses glitches
+* Executes arbitrary code
+
+!!! Introduction
+When I started working on the Pokemon Emerald [https://github.com/pret/pokeemerald| decompilation project],
+I learned about some of the glitches in the game, including arbitrary code execution using glitched moves via the
+Pomeg glitch. I then found out that you can get Pomeg berries from the Berry Master a few minutes than published
+glitch runs do, but that this was only useful if I could make arbitrary code execution work. I started to wonder if it
+would be possible to beat the game even faster by exploiting this.
+
+There are various videos on Youtube describing how to set up arbitrary code execution in Emerald, but none of them are
+quite fast enough to be useful for a TAS--they require many, RNG-dependent corruptions to set up, require acquiring
+many glitch items to write the actual code, or require the use of in-game trade pokemon or EV training.
+
+I started to pursue a better way, and gave it up after a few weeks, frustrated by the difficulty.
+Eventually I came back to it and realized that, on the Japanese version of Emerald, I could make ACE viable in a TAS,
+and even in a speedrun.
+
+This TAS is the result of this research, and as far I know is the first of its kind, using Japanese Pokemon nicknames
+to write its opcodes and beating the game with only 5 badges, almost 12 minutes ahead of the current record.
+
+!!! Terminology
+I will use the terms "frame" and "cycle" throughout, so it is important to distinguish them:
+; Frame: Exactly 280,896 cpu cycles or 1/59.73th of a second
+; Cycle: 1 advancement of the RNG state.
+1 cycle is not always equal to 1 frame, because many things advance the RNG:
+* In the overworld, the RNG is advanced once per frame
+* Each time an NPC/trainer turns or walks on their own, the RNG is advanced
+* In battle, the RNG is advanced twice per frame
+* AI/Accuracy/critical/damage calculation advances the RNG
+It is important to count both cycles and frames, because some events in the game are cycle-locked, but not frame-locked,
+meaning that they must occur at a certain cycle but that cycle may possibly be reached at an earlier frame.
+As a result, frames can sometimes be saved by waiting in a battle rather than in the overworld to make the RNG state
+advance faster.
+
+!!! RNG Manipulation
+Emerald's RNG is a 32 bit [link|LCRNG] that uses the formula: next = current * 0x41c64e6d + 0x6073.
+When used for calculations, the high 16 bits are shifted right 16 bits; the lower 16 are not used.
+
+Because of a programming oversight, it is not seeded on soft reset, meaning that the initial seed is always zero.
+The only time the RNG is seeded is when starting a new game, immediately after the player confirms their name.
+This process is quite precise: when the naming screen is entered, the game starts one of the GBA's fast timers, which runs
+much faster than the framerate. The timer is stopped and the RNG seeded with its value when the name is confirmed.
+
+!! Trainer ID/Secret ID Manipulation
+The visible trainer ID is set when the name is confirmed; it is also the value that seeds the RNG.
+The hidden, secret ID is set just before your sprite disappears after Birch's speech, using the RNG state at that time.
+In-game, these values are combined internally into a single 32 bit value, with the TID and SID as the low and high 16 bits.
+Although the timer for the TID is very fast, it can be manipulated in a limited way by waiting/pressing more or fewer buttons
+in the naming screen, because pressing a button takes more cycles than not doing so. The SID can be manipulated simply
+by waiting.
+
+!! Method 1 (Mudkip) manipulation
+Smogon has an [link|excellent article] on this. When you pick a starter, the RNG is advanced 4 times.
+* The first and second values become the low/high 16 bits of the [link|PID], respectively.
+* The third and fourth values become the pokemon's IVs.
+
+!! Battle AI/Quick Claw manipulation
+Each turn in battle, just before the game displays the FIGHT option, the AI for the opponent runs, advancing the RNG
+some number of times (this is highly variable, and dependent on which pokemon they're facing, their moves, etc). A value
+known as the {{randomTurnNumber}} is also chosen from the RNG. This is only used for Quick Claw--if it is less than 0x3333,
+Quick Claw will activate and the holder will go first.
+
+By manipulating the timing of turns, especially when the opponent sends out a new pokemon, opponent AI decisions can be
+manipulated somewhat, and we can engineer turns on which Quick Claw will activate.
+
+!! Accuracy/Critical/Damage Manipulation
+Whether a move will hit is determined just before the attack string is printed. The formula is:
+{{if (rng mod 100) + 1 <= move_accuracy * stages then HIT}}, where {{stages}} is a scaling value that is normally 1,
+and goes up/down with user accuracy stages/target evasion stages.
+
+Critical and damage calculation are done just after the attack string is printed.
+Damage calculation happens 6 cycles after critical calculation.
+
+The critical formula is: {{if (rng mod crit_mod) == 0 then CRIT}}; in this run {{crit_mod}} is always 16.
+Damage is calculated as a scaling value, from 85-100 inclusive: {{scale = 100 - (rng mod 16)}}.
+
+A critical hit always doubles the damage a move will do.
+
+!! Wild Pokemon/Encounter manipulation
+There is an important overworld value called the {{tileTransitionState}}. This value is normally 1 while moving, 0
+when standing still, and briefly 2 when the player passes over the center of a tile.
+
+Encounters occur 1 frame/2 cycles after the frame __before__ the state becomes 2.
+If stepping into a tile that is the same as the current one (i.e grass to grass), the formula is:
+{{if (rng mod 2880) < rate * 16 then ENCOUNTER}}, where {{rate}} is the encounter rate of the area.
+
+If an encounter occurs, the RNG is advanced several times:
+# {{slot = rng mod 100}}. Each land area has 12 slots; the slot value is used to choose which pokemon appears
+# level is calculated based on a range
+# {{nature = rng mod 25}}
+Afterwards, the RNG is advanced twice at a time, forming a PID, until {{PID mod 25 == nature}}
+
+Encounters can be manipulated by timing the cycle on which the tile transition occurs. When on the bike, the encounter
+rate is reduced by 20% (the rate is calculated as {{rate * 16 * 80 / 100}}).
+
+!!! Game version
+Although text does go by slightly faster on the Japanese version of Emerald, this is not why I chose it. Rather,
+the advantage of JP Emerald lies in its
+[https://bulbapedia.bulbagarden.net/wiki/Character_encoding_in_Generation_III#Japanese | character set].
+The ARM instructions that will be executed are written in Pokemon nicknames, as catching and naming pokemon is very fast
+(we catch 9 pokemon in total: Abra to use as a bootstrap, and 8 Poochyena containing the code). However, on US Emerald,
+the number of bytes that can be input in nicknames is very limited. It is still possible to construct a credits warp
+payload in around 18 instructions, but the bootstrap code on Abra is a different story. A similar run on US Emerald would
+require writing the bootstrap code in Abra or Mudkip's EVs, which would require additional EV training and put more
+restrictions on the properties of their PIDs. It is almost certainly slower.
+
+On JP Emerald, however, almost every byte can be input, and even though names in JP can only be 5 characters long,
+making a payload to run whatever we want is very fast.
+Learning that JP had this property and disassembling the Japanese ROM is what enabled this run in the
+first place.
+
+!!! Pomeg Glitch
+As far as I can tell, the Pomeg glitch was known since around 2007 to exist, but it took years for its potential to be
+noticed. By using a pomeg berry on a pokemon that gained 1 HP from EVs, its HP will decrease by 1. If the pokemon
+is at 1 HP when the berry is used, it will be knocked out, even if it is the last conscious pokemon, and the player will
+not white out. This is used to enable a subglitch known as Glitzer Popping.
+
+!!! Glitzer Popping
+Named by Werster, this Pomeg Berry subglitch works by accessing pokemon beyond the sixth slot of the party.
+
+The procedure works as follows:
+# Create a team of two fainted pokemon, and one pokemon that can be used for the Pomeg glitch with 1 HP, in order
+# Enter a wild battle and flee. The game sets the slot of the last conscious pokemon seen to the Pomeg pokemon slot
+# Deposit the first fainted pokemon. Now there is no pokemon on that slot, but the player still has a conscious pokemon.
+# Use the Pomeg Berry to KO the conscious pokemon without whiting out. Now the player has no conscious pokemon.
+# Enter a wild battle. The game sees that all pokemon are KOed, and so sends out the pokemon in the saved slot, which in this case is an empty ??? (Decamark) whose data is all zeroes.
+# Enter pokemon selection and view the summary of the 2nd pokemon in the party, and exit it. The game runs anti-cheat checks against the party pokemon, which invalidates the ??, causing it to be treated as an actual pokemon and not zeroes.
+# Because the ??? is considered a real pokemon, pokemon above it can be selected. This warps the selection pointer into
+RAM, starting at Box 2 Slot 24 in the PC, and ascending 100 bytes with each up press.
+
+As the pointer ascends, it treats 100-byte blocks of memory as party pokemon, and performs the same anti-cheat
+function on them. If the checksum of this pokemon is invalid, a few bits will be set or flipped corresponding to the
+{{isEgg}} and {{badEgg}} bits.
+
+!! RAM Corruption
+When the pointer selects an invalid block, two types of corruption can occur:
+* Type 1 corruptions are fixed, 20 bytes after the pointer, and set bits 0 and 2 to 1.
+* Type 2 corruptions vary depending on the PID of the block and can set bit 6 to 1 or 0.
+
+!!! Routing
+The early game is similar to previous Emerald TASes. The main differences pre-Pomeg are:
+* 2 HP Ups are picked up, one on Route 116, and one on Route 111 (requires Surf).
+* 3 Proteins are picked up, one on Route 114, one one in the Route 111 desert, and one on Route 106 (requires Surf).
+* Marshtomp knocks out 2 Solrock in Meteor Falls to gain 2 Attack EVs.
+* Fly is not needed and so there is no need to catch a Tailow.
+* 8 Poochyena are caught on Route 103 after Norman.
+* The Elixir on Route 110 is picked up to use on Marshtomp later.
+* 1 Pomeg Berry is acquired from the Berry Master instead of 2.
+
+After getting the Pomeg berry, the route diverges significantly. Everything after is setup for ACE:
+* Abra learns Facade and knocks out a Marill on Route 104 to gain 2 HP EVs.
+* After the 3rd protein is picked up on Route 106, a battle with a Wingull knocks out 2 Poochyena and brings Abra to 1 HP.
+* Marshtomp knocks out two Zigzagoon to gain 2 Speed EVs to avoid crashing the game. This is done on Route 102.
+* Glitzer Popping corruptions and the actual ACE happen on Route 101.

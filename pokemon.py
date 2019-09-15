@@ -139,6 +139,8 @@ class BoxMon(LittleEndianStructure):
                          in range(0, 20 * 8, 32)]))
         print()
         print(s)
+        with open('ugh.txt', 'w') as f:
+            f.write(s)
 
     def test_legality(self):
         if self.checksum != self.calc_checksum():
@@ -150,6 +152,10 @@ class BoxMon(LittleEndianStructure):
             print('Legal')
 
 
+# 0 G
+# 1 A
+# 2 E
+# 3 M
 # Maps personalities to substruct order lists l
 # Substruct i appears in position l[i]
 perms = {0: [0, 1, 2, 3], 1: [0, 1, 3, 2], 2: [0, 2, 1, 3], 3: [0, 3, 1, 2], 4: [0, 2, 3, 1], 5: [0, 3, 2, 1],
@@ -197,10 +203,15 @@ def analyze(data: bytearray):
 def analyze_loop():
     while True:
         hex_dump = input()
+        if 'quit' in hex_dump:
+            quit()
         data = bytearray.fromhex(hex_dump)
         mon = BoxMon.from_buffer(data)
         mon.decrypt()
-        print(mon.sub(3).type3.dump())
+        for i in range(4):
+            foo = getattr(mon.sub(i), f'type{i}')
+            print(foo.dump())
+        mon.encrypt()
         mon.export()
 
 

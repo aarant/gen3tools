@@ -23,6 +23,22 @@
 | gTasks | 03005e00 |
 | load animation | 080A3B58 |
 | CalculateBoxMonChecksum | 08068c78 |
+| GetSpeciesName | 0806b914 |
+| CreateBoxMon | 08067bbc |
+| CreateMon | 08067b4c |
+| gEventObjects | 02037350 |
+| InitEventObjectStateFromTemplate | 0808d644
+| TrySpawnEventObjects | 0808df80
+| ClearEventObject | 0808d3f0 |
+| ResetEventObjects | 0808d438 |
+| LoadEventObjects | 08076e64
+| GetRamScript | 08099188 |
+
+## Ram Script ACE
+- magic = 51
+- address in r2: 0809919E
+- call to checksum: 080991BE
+- checksum done: 080991C2
 
 ## Pomeg glitching
 - starts at 0202A888, goes down by 100 (0x64)
@@ -114,6 +130,14 @@ gMoveResultFlags: MISSED is 1
           3. CreateWildMon
             1. PickWildMonNature 1
             2. CreateMonWithNature >2
+               1. CreateMon
+               2. CreateBoxMon
+
+## Trash bytes
+- CreateMon
+- CreateBoxMon:
+  8 pushes, -0x20 (-64 bytes)
+
 
 ## Youngster Calvin
 - +1 AT
@@ -133,14 +157,11 @@ gMoveResultFlags: MISSED is 1
 ## Aqua Grunt
 - +1 AT
 
-## Brendan 2
-- +2 SP
-
 ## Brawly
 - +1 HP, +1 AT, +1 SP
 
 ## Aqua Grunts
-- +2 AT, +2 SP
+- +2 AT, +1 SP
 
 ## Pokefan Isabel
 - +2 SP
@@ -222,7 +243,7 @@ SP: Golbat (Meteor Falls), Electrode (New Mauville) +2, Linoone (118) +2
 
 ## Move ACE
 - Glitch move `0x1608` reads from 02030400 (Box 12, slot 15)
-- Target is read from `082c8d6c+(move*4)`
+- Target is read from `082c8d6c+(move*4)` (gBattleAnims_Moves)
 - Bootstrap: 1f zz yy xx ww 00 (sound task, 0 arguments)
 - Bootstrap must be stored in pokemon EVs
 - Can only use r10-r14, along with other restrictions, in nickname opcodes
