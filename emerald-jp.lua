@@ -1,14 +1,14 @@
 function showState()
   gui.cleartext()
   frame = emu.framecount()
-  if frame >= 231382 then frame = 231382 end
+  if frame >= 211301 then frame = 211301 end
   seconds = frame / 59.73
   minutes = seconds / 60
   seconds = seconds % 60
   hours = minutes / 60
   minutes = minutes % 60
   gui.text(0, 0, string.format("%06d %02d:%02d:%02d", frame, hours, minutes, seconds))
-  if frame >= 231382 then return end
+  if frame >= 211301 then return end
   rng = memory.read_u32_le(0x005ae0, "IWRAM")
   cycles = memory.read_u32_le(0x024664, "EWRAM")
   gui.text(0, 14, string.format("%06d %08X", cycles, rng))
