@@ -2,6 +2,8 @@
 .syntax unified
 .thumb
 
+@ Jump to Hall of Fame directly. Does not set all flags
+
 Hof:
   ldr r0, gMain
   movs r1, #0

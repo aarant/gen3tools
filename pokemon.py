@@ -139,7 +139,7 @@ class BoxMon(LittleEndianStructure):
                          in range(0, 20 * 8, 32)]))
         print()
         print(s)
-        with open('ugh.txt', 'w') as f:
+        with open('pokemon.txt', 'w') as f:
             f.write(s)
 
     def test_legality(self):
@@ -152,11 +152,9 @@ class BoxMon(LittleEndianStructure):
             print('Legal')
 
 
-# 0 G
-# 1 A
-# 2 E
-# 3 M
 # Maps personalities to substruct order lists l
+# 0 1 2 3
+# G A E M
 # Substruct i appears in position l[i]
 perms = {0: [0, 1, 2, 3], 1: [0, 1, 3, 2], 2: [0, 2, 1, 3], 3: [0, 3, 1, 2], 4: [0, 2, 3, 1], 5: [0, 3, 2, 1],
          6: [1, 0, 2, 3], 7: [1, 0, 3, 2], 8: [2, 0, 1, 3], 9: [3, 0, 1, 2], 10: [2, 0, 3, 1], 11: [3, 0, 2, 1],
@@ -198,6 +196,20 @@ def analyze(data: bytearray):
     print()
     print(s)
     print(perms[box_mon.personality % 24])
+
+
+def test_moves(mon):  # mon must be decrypted
+    evs = mon.sub(2).type2
+    evs.hpEV += 10
+    evs.attackEV += 30
+    mon.checksum = mon.calc_checksum()
+    mon.encrypt()
+    mon.personality |= 0x40000000
+    mon.decrypt()
+    attacks = mon.sub(1).type1
+    attacks.pp[0] = 10
+    mon.checksum = mon.calc_checksum()
+
 
 
 def analyze_loop():

@@ -35,7 +35,12 @@ glitch id: 0x3110 targets 02330000 (Box 12 slot 13-14)
 | SetSaveBlocksPointers | 080765E4 |
 | save block offset | 080765F6 |
 | GetBoxMonData | 0806A1B4 |
-| gPokemonStoragePtr | 03005AF4
+| gPokemonStoragePtr | 03005AF4 |
+| gMapHeader | 02036FB8 |
+| CB2_LoadMap2 | 08085964 |
+| gEventObjects | 02036FF0 |
+| Scott | 081db9f0 |
+| Common_Movement_ExclamationMark | 0824361b |
 
 ## Pomeg Glitch
 - Target: 0202A52C (-100 each time)
@@ -85,9 +90,9 @@ glitch id: 0x3110 targets 02330000 (Box 12 slot 13-14)
 - +15
 - (0, 2, 4, 0, 0, 2)
 
-## Nickname Abra
+## Catch Abra
 - Must have at least 23 HP IVs
-- 1F 09 18 03 02 FF (Box 1 name; THUMB) (まけねうい)
+- -205
 
 ## Hiker Devan
 - (0, 2, 6, 0, 0, 2)
@@ -98,150 +103,177 @@ glitch id: 0x3110 targets 02330000 (Box 12 slot 13-14)
 
 ## Brawly
 - !Water Gun x 6
+- Need Machop to use Low Kick, Makuhita to use Vital Throw
 - (1, 4, 6, 0, 0, 3)
 
 ## Aqua Grunts
+- last heal
 - (1, 6, 6, 0, 0, 4)
+- Tackle: 35 Water Gun: 25 Mud Shot: 15
 
 ## Pokefan Isabel
+- Mud Shot, Mud Shot
 - (1, 6, 6, 0, 0, 6)
+- Tackle: 35 Water Gun: 25 Mud Shot: 13
 
 ## Pokefan Kaleb
+- Mud Shot, Mud Shot
 - (1, 6, 6, 0, 0, 8)
+- Tackle: 35 Water Gun: 25 Mud Shot: 11
 
 ## Brendan 3
-- Mud Shot, !Mud Shot, !Mud Shot, !Tackle
+- Mud Shot, !Mud Shot/!Tackle, !Mud Shot/!Tackle, !Tackle
 - (1, 6, 6, 1, 0, 11)
+- Tackle: 33 Water Gun: 25 Mud Shot: 9
 
 ## Triathlon Alyssa
-- Water Gun
+- Water Gun!
 - (1, 6, 6, 2, 0, 11)
+- Tackle: 33 Water Gun: 24 Mud Shot: 9
 
 ## Psychic Edward
-- Water Gun
+- Tackle
 - (1, 6, 6, 3, 0, 11)
+- Tackle: 32 Water Gun: 24 Mud Shot: 9
 
 ## Wally
 - Water Gun
 - (1, 6, 6, 4, 0, 11)
+- Tackle: 32 Water Gun: 23 Mud Shot: 9
 
 ## Youngster Ben
-- !Mud Shot, Mud Shot
+- Water Gun!, Mud Shot
 - (2, 6, 6, 4, 0, 12)
+- Tackle: 32 Water Gun: 22 Mud Shot: 8
 
 ## Wattson
+- Mud Shot x 3, Mud Shot!
 - (2, 6, 6, 6, 0, 16)
+- Tackle: 32 Water Gun: 22 Mud Shot: 4
 
 ## Hiker Lucas
-- +1 DE, +1 SA
-- (2, 6, 7, 7, 0, 16)
+- Water Gun, Water Gun
 - 1st Protein
+- (2, 6, 7, 7, 0, 16)
+- Tackle: 32 Water Gun: 20 Mud Shot: 4
 
-## 2 Solrocks
-- (2, 10, 7, 7, 0, 16)
-
-## Hiker Mike
-- +1 AT, +2 DE
-- 1st HP Up
-- (2, 11, 9, 7, 0, 16)
+# 3 Solrock
+- (2, 12, 7, 7, 0, 16)
+- Tackle: 32 Water Gun: 17 Mud Shot: 4
 
 ## Verdanturf
 - Pick up 2 Fluffy tails, some Pokeballs and X Special?
 
 ## Magma Grunts
+- Mud Shot, Tackle!
 - +1 SA, +1 SP
-- (2, 11, 9, 8, 0, 17)
+- (2, 12, 7, 8, 0, 17)
+- Tackle: 31 Water Gun: 17 Mud Shot: 3
 
 ## Tabitha
+- Water Gun, Water Gun!, Water Gun!/Tackle!, Water Gun
 - +1 AT, +2 SA, +1 SP
-- (2, 12, 9, 10, 0, 18)
+- (2, 13, 7, 10, 0, 18)
+- Tackle: 31 Water Gun: 13 Mud Shot: 3
 
 ## Maxie
+- Water Gun x 3
 - +3 AT, +1 SA, +1 SP
-- (2, 15, 9, 11, 0, 19)
+- (2, 16, 7, 11, 0, 19)
+- Tackle: 30 Water Gun: 10 Mud Shot: 3
 
 ## Flannery
+- Mud Shot, Water Gun x2, Water Gun!
 - +1 AT, +2 DE, +3 SA
-- (2, 16, 11, 14, 0, 19)
 - pick up 2nd protein
+- (2, 17, 9, 14, 0, 19)
+- Tackle: 30 Water Gun: 7 Mud Shot: 2
 
 ## Speed Room
+- Water Gun!, Water Gun!
 - +2 SP
-- (2, 16, 11, 14, 0, 21)
+- (2, 17, 9, 14, 0, 21)
+- Tackle: 30 Water Gun: 5 Mud Shot: 2
 
 ## Confusion Room
+- Tackle, Mud Shot!
 - +1 SA
-- (2, 16, 11, 15, 0, 21)
+- (2, 17, 9, 15, 0, 21)
+- Tackle: 29 Water Gun: 5 Mud Shot: 1
 
 ## Strength Room
+- Tackle, Mud Shot!
 - +2 AT
-- (2, 18, 11, 15, 0, 21)
+- (2, 19, 9, 15, 0, 21)
+- Tackle: 28 Water Gun: 5 Mud Shot: 0
 
 ## Norman
-- +3 HP, +1 SA, +4 SP◘
-- (5, 18, 11, 16, 0, 25)
-
-## Catch pokemon
-- Kill 1 Poochyena
-- (5, 19, 11, 16, 0, 25)
+- Water Gun! x5
+- +3 HP, +1 SA, +4 SP
+- (5, 19, 9, 16, 0, 25)
+- Tackle: 28 Water Gun: 0 Mud Shot: 0
 
 ## Teach Surf
 
 ## Elixir & HP Up 2
-- Elixir: Route 110 (not necessary)
 - HP Up: Route 111
 
 ## Rose & Deandre
 - +1 HP, +1 DE, +2 SA, +2 SP
-- (6, 19, 12, 18, 0, 27)
+- (6, 19, 10, 18, 0, 27)
 - Abra: 1 HP EVs
 
 ## Berry Master
 - 1 Pomeg & 1 Tamato
-- Order: Pokemon Abra Marshtomp
+- Reorder: Pokemon Abra Marshtomp
 
 ## Route 105/Protein 3
 - Use all vitamins
-- Use Tamato berry on Marshtomp
 - Knock out pokemon, bring Abra to 1 HP, switch to Marshtomp
+- catch and nickname
+- 1F 09 18 03 02 FF (Box 1 name; THUMB) (まけねうい)
 
 ## Expected EVs
-HP-AT DE-SP SA-SD
-3110 110c 0012
-- (16, 49, 12, 18, 0, 17)
+- Note that move1 is ORed with 0x4000
+AT-HP SP-DE SD-SA
+3110 1b0a 0012
+- (16, 49, 10, 18, 0, 27)
 
-## Deposit Marshtomp
-- Put Marshtomp in Box 2 slot 24
+## Deposit
+- Wingull: Box 12 Slot 14
+- Marshtomp: Box 2 Slot 24
 
 ## Glitzer Popping
 - Use pomeg berry on Abra
-- Corruption target: 0202a574
-- Corrupt PID
-- Corrupt TID
+- Corrupt PID at: 0202a574
 
-# ACE Prep
-- Put Marshtomp in party
-- Put Abra in Box 12 Slot 14
-- Rename boxes
-- Use Elixir on Mudkip
+## ACE Prep
+- Lift egg, place in party
+- Name Boxes 1-5
 - Enable animations!
 
 ## Move ACE
-1. Glitch move `0x3110` targets 02330000 (Box 12 slot 13).
-- Bootstrap: 1f zz yy xx ww ff
+1. Glitch move `0x3110` targets 02330000 (Box 12 slot 14).
+- Bootstrap: 1f zz yy xx ww ff targets address wwxxyyzz
 - Bootstrap: 1f 50 00 33 02 ff (Box 12 slot 14/15) (まっ ぉい)
 2. +1 pokemon jumps (B+15) are possible and minimal.
 3. ARM instructions fit 1 instruction per pokemon.
 4. Use the high registers to avoid clobbering. (DO NOT use r0)
 
+## TODO
+- Faster alignment
+- TAS alternate route
+- Defer box naming
+- Fix bump in Poke Center
+
+## Initial registers
 r0: 0 r1: 080a5113 r2: ffffffff r3: 03005b88
-r4: 020382bc
+r4: 020382bc r6: jump address
 r8: 0
 
 ## Using box names
-- stored at offset 0x8344 of PokemonStorage
-- contiguous in memory?
-- target: 02031808
+- PokemonStorage+0x8344
+- When bootstrap is at 02330000, start at 02031808
 
 ## Credits Warp (ARM)
 1. set task func to SetCallback2AfterHallOfFameDisplay
@@ -270,7 +302,7 @@ STB r2,[r4-541]     E544221d # set sound count to ff
 BX lr               e12fff1e
 ```
 
-## Input Bootstrap
+## Input Bootstrap (ARM)
 1. setup key input
 2. write lower 8 bits consecutively
 3. loop until L&R pressed
@@ -285,7 +317,7 @@ AND r1,#0x3f        E2110C3F # Z=L&R
 LDRNE r0,[pc-0x198] 143F0198 # pseudo-BNE
 ```
 
-## 7 instruction bootstrap
+## 7 instruction bootstrap (ARM)
 ```
 LDRT r5,[r6,#0x190]   E5B65190 # r5=REG_KEYINPUT
 SWILS #5              9F050000 # C=0 or Z=1
@@ -298,16 +330,17 @@ LDRNET r0,[pc-0x148]  143F0148 # pseudo-BNE
 
 ## Box name bootstrap
 - Bootstrap: 1F 09 18 03 02 FF (Box 1 name; THUMB) (まけねうい)
+- Short prelude to overwrite instructions
 1. Setup key input
 2. Write lower 8 bits
 3. Loop unless L&R pressed
 ```
 Box1: @ 02 4D 34 1D 05 DF 04 E0 (いぷゃへおkえl)
 LDR r5,[pc,#8]  4D02 @ r5=REG_KEY_INPUT
-ADD r4,r6,#4    1D34 @ r4=loop target
+ADD r4,r6,#4    1D34 @ r4=start of loop (SWI)
 SWI #5          DF05
 B Box3          E004
-Box2: xx xx xx 30 01 00 04 (ぃぃぃぃあ え)
+Box2: @ xx xx xx 30 01 00 04 (ぃぃぃぃあ え)
 .space 3
 .4byte 0x04000130 @ REG_KEYINPUT
 Box3: @ 29 68 71 77 01 4B 04 E0 (るネムラ ゥぽ えl)
@@ -323,4 +356,5 @@ ADD r6,#1       3601
 TST r1,r3       4219 @ Z=L&R
 BEQ target      D000
 BX r4           4720 @ loop to SWI
+target:
 ```

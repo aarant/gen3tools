@@ -3,19 +3,19 @@ from itertools import islice
 from pokemon import BoxMon
 
 
-def seeds(seed=0, frame=0, limit=2**32):
-    """ Yields successive seeds up to a limit.
+def seeds(seed: int = 0, frame: int = 0, limit: int = 2**32):
+    """ Yields successive seeds (32 bits) up to a limit.
 
     Args:
-        seed (int): Seed to start on. Defaults to 0.
-        frame (int): Frames to skip. Defaults to 0.
+        seed (int): Initial seed. Defaults to 0.
+        frame (int): Cycles to skip. Defaults to 0.
         limit (int): Number of seeds to produce. Defaults to 2**32.
     >>> list(seeds(limit=4))
     [0, 24691, 3917380458, 1383151765]
     """
     if frame and seed == 0:  # Use fast seed calculation
         seed = seed_at(frame)
-    elif frame and seed != 0:  # Skip manually
+    elif frame and seed != 0:  # Skip cycles manually
         for _ in range(frame):
             seed = 0xffffffff & seed * 0x41c64e6d + 0x6073
     for _ in range(limit):
@@ -23,12 +23,12 @@ def seeds(seed=0, frame=0, limit=2**32):
         seed = 0xffffffff & seed * 0x41c64e6d + 0x6073
 
 
-def rand(seed=0, frame=0, limit=2**32):
-    """ Yields successive RNG *values* up to a limit.
+def rand(seed: int = 0, frame: int = 0, limit: int = 2**32):
+    """ Yields successive RNG *values* (16 bits) up to a limit.
 
     Args:
-        seed (int): Seed to start on. Defaults to 0.
-        frame (int): Frames to skip. Defaults to 0.
+        seed (int): Initial seed. Defaults to 0.
+        frame (int): Cycles to skip. Defaults to 0.
         limit (int): Number of values to produce. Defaults to 2**32.
     """
     return (seed >> 16 for seed in seeds(seed, frame, limit))
@@ -37,7 +37,7 @@ def rand(seed=0, frame=0, limit=2**32):
 def seed_at(cycle: int) -> int:
     """ Get the seed that would occur after a number of cycles.
 
-    This is only valid when the base seed is zero.
+    This is only valid when the initial seed is zero.
 
     Args:
         cycle (int): The number of elapsed RNG cycles
@@ -55,6 +55,7 @@ def seed_at(cycle: int) -> int:
     a = 0x41c64e6d
     b = 0x6073
     # I'm unable to find the webpage I found this method on, but it works.
+    # It seems to be related to modular exponentiation
     res = (a-1)*m
     return (((pow(a, cycle, res)-1) % res)//(a-1)*b) % m
     return ((a**cycle-1)//(a-1)*b) % m
@@ -107,25 +108,25 @@ def choose_land_index(rng):  # pick a wild mon index TODO: Move this
 
 
 def wild_mons(seed=0, cycle=0, limit=1000, diff=False, bike=False, rate=20, slots=None):
-    """ Yield (cycle seed, pid) tuples for wild pokemon encounters.
+    """ Yield (cycle, seed, pid) tuples for wild pokemon encounters.
 
-    Seed is the value of the RNG at the frame before the tile transition.
+    Seed is the value of the RNG on the frame *before* the tile transition.
 
     Args:
         seed (int): Starting value for RNG. Defaults to 0.
         cycle (int): Cycles to skip. Defaults to 0.
         limit (int): Limit of cycles to search through. Defaults to 1000.
-        diff (bool): If the previous and current metatiles differ. Defaults to False.
-        bike (bool): If a bike is being ridden. Defaults to False.
-        rate (int): Encounter rate of area.
-        slots (set): Set of allowed wild encounter slots.
+        diff (bool): If the previous and current metatile behaviors differ. Defaults to False.
+        bike (bool): If the bike is being ridden. Defaults to False.
+        rate (int): Encounter rate of area. Defaults to 20.
+        slots (set): Set of allowed wild encounter slots. Defaults to all slots.
     """
-    offset = 2  # Skip 1 frame
+    offset = 2  # Skip 1 frame; use the next
     rate *= 16
     rate = (80 * rate // 100) if bike else rate
     rate = min(rate, 2880)
     for i, base in enumerate(seeds(seed, cycle, limit), cycle):
-        rng = (r >> 16 for r in seeds(base, offset))
+        rng = rand(base, offset)
         if diff and not next(rng) % 100 < 60:  # Global encounter check
             continue
         elif not next(rng) % 2880 < rate:  # Local encounter check
@@ -168,7 +169,7 @@ def battle_seeds(seed=0, frame=0, limit=1000):
 
     Args:
         seed (int): Starting seed. Defaults to zero.
-        frame (int): Frames to skip. Defaults to 0.
+        frame (int): Cycles to skip. Defaults to 0.
         limit (int): Number of seeds to yield. Defaults to 1000.
     """
     yield from islice(seeds(seed, frame*2, limit*2), 0, None, 2)
@@ -178,11 +179,11 @@ def crit_dmg_calc(rng, chance=0):
     """ Calculates the criticality and damage using a seed.
 
     Args:
-        rng: RNG state, as returned by rand().
+        rng: RNG generator as returned by rand().
         chance (int): Number of critical stages. Defaults to zero.
 
     Returns:
-        (crit, dmg) tuple where crit is whether the attack crit, and dmg is the unadjusted damage.
+        (crit, dmg) tuple where crit is whether the attack crit, and dmg is the (unadjusted) damage.
     """
     chances = (16, 8, 4, 3, 2)
     crit = (next(rng) % chances[chance]) == 0
@@ -196,7 +197,7 @@ def acc_calc(rng, acc_stage=6, evade=6, move_acc=95):
     """ Calculate whether a move will hit using a seed.
 
     Args:
-        rng: RNG state as returned by rand().
+        rng: RNG generator as returned by rand().
         acc_stage (int): Attacker's accuracy stages. Defaults to 6.
         evade (int): Defender's evasion stages. Defaults to 6.
         move_acc (int): Move accuracy. Defaults to 95.
@@ -239,6 +240,7 @@ def nocrit_seek(seed, frame=0, limit=10):  # For tutorial battles
         dmg = 100 - (next(rng) % 16)
         print(f'{base:08x}:{dmg:03d}', end=' ')
     print()
+
 
 nature_map = {'hardy': 0, 'lonely': 1, 'brave': 2, 'adamant': 3, 'naughty': 4, 'bold': 5, 'docile': 6,
               'relaxed': 7, 'impish': 8, 'lax': 9, 'timid': 10, 'hasty': 11, 'serious': 12,

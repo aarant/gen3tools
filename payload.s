@@ -2,6 +2,8 @@
 .syntax unified
 .thumb
 
+@ Was used for testing
+
 @ Hof:
 @   ldr r0, gMain
 @   ldr r1, CB1_Overworld

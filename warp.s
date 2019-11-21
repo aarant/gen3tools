@@ -2,6 +2,8 @@
 .syntax unified
 .thumb
 
+@ Warp into HOF
+
 WarpJP:
   ldr r0, warpDest
   ldr r1, warpData

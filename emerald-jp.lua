@@ -1,14 +1,17 @@
+-- HUD for Pokemon Emerald (J)
+final_inp = 400000 -- final input frame
+
 function showState()
   gui.cleartext()
   frame = emu.framecount()
-  if frame >= 211301 then frame = 211301 end
+  if frame >= final_inp then frame = final_inp end
   seconds = frame / 59.73
   minutes = seconds / 60
   seconds = seconds % 60
   hours = minutes / 60
   minutes = minutes % 60
   gui.text(0, 0, string.format("%06d %02d:%02d:%02d", frame, hours, minutes, seconds))
-  if frame >= 211301 then return end
+  if frame >= final_inp then return end
   rng = memory.read_u32_le(0x005ae0, "IWRAM")
   cycles = memory.read_u32_le(0x024664, "EWRAM")
   gui.text(0, 14, string.format("%06d %08X", cycles, rng))
@@ -35,13 +38,15 @@ function showState()
     else -- Miss
       gui.text(0, 14*8, "Miss", 0xffde6b5a)
     end
+    addr = memory.read_u32_le(0x007914, "IWRAM")
+    gui.text(0, 14*2, string.format("Addr: %08X", addr))
   else -- overworld display
     foePID = memory.read_u32_le(0x0243E8, "EWRAM")
     gui.text(0, 28, string.format("Foe: %08X", foePID))
     tile = memory.readbyte(0x037233, "EWRAM")
     gui.text(0, 14*3, string.format("Tile: %d", tile))
-    instr = memory.read_u32_le(0x007cec, "IWRAM")
-    gui.text(0, 14*4, string.format("Ins: %08X", instr))
+    -- addr = memory.read_u32_le(0x007914, "IWRAM")
+    -- gui.text(0, 14*4, string.format("Addr: %08X", addr))
   end
 end
 event.onframeend(showState)
