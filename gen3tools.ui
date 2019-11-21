@@ -21,7 +21,7 @@
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <property name="documentMode">
        <bool>true</bool>
@@ -141,7 +141,10 @@
              <property name="currentIndex">
               <number>1</number>
              </property>
-             <widget class="QWidget" name="tab_2">
+             <widget class="QWidget" name="acc_tab">
+              <property name="step_cycles" stdset="0">
+               <UInt>2</UInt>
+              </property>
               <attribute name="title">
                <string>Accuracy</string>
               </attribute>
@@ -236,7 +239,10 @@
                </item>
               </layout>
              </widget>
-             <widget class="QWidget" name="tab_3">
+             <widget class="QWidget" name="crit_tab">
+              <property name="step_cycles" stdset="0">
+               <UInt>2</UInt>
+              </property>
               <attribute name="title">
                <string>Crit/Damage</string>
               </attribute>
@@ -302,7 +308,10 @@
                </item>
               </layout>
              </widget>
-             <widget class="QWidget" name="tab_10">
+             <widget class="QWidget" name="quick_tab">
+              <property name="step_cycles" stdset="0">
+               <UInt>2</UInt>
+              </property>
               <attribute name="title">
                <string>Quick Claw</string>
               </attribute>
@@ -322,7 +331,10 @@
                </item>
               </layout>
              </widget>
-             <widget class="QWidget" name="tab_11">
+             <widget class="QWidget" name="wild_tab">
+              <property name="step_cycles" stdset="0">
+               <UInt>1</UInt>
+              </property>
               <attribute name="title">
                <string>Wild</string>
               </attribute>
@@ -384,6 +396,9 @@
         </item>
         <item>
          <widget class="QTableWidget" name="frameTable">
+          <property name="editTriggers">
+           <set>QAbstractItemView::NoEditTriggers</set>
+          </property>
           <property name="alternatingRowColors">
            <bool>true</bool>
           </property>

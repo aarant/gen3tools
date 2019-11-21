@@ -29,80 +29,17 @@ class GuiWindow(Ui_MainWindow):
         self.rng.editingFinished.connect(self.rng_changed)
         self.cycle.valueChanged.connect(self.cycle_changed)
         self.cycle.editingFinished.connect(self.update_table)
+        # Link fields with frame table
         for name in ('limit', 'move_acc', 'acc_stage', 'evade', 'min_dmg', 'chance', 'slots', 'rate'):
             getattr(self, name).editingFinished.connect(self.update_table)
         for tri in ('hit', 'crit', 'quick_claw'):  # Set tristates
             getattr(self, tri).setCheckState(1)
-        for field in ('hit', 'crit', 'quick_claw', 'diff', 'bike'):  # Checkboxes
+        for field in ('hit', 'crit', 'quick_claw', 'diff', 'bike'):  # Link checkboxes with frame table
             getattr(self, field).stateChanged.connect(self.update_table)
-        self.tabWidget_3.currentChanged.connect(self.update_table)
+        self.tabWidget_3.currentChanged.connect(self.update_table)  # Switching tabs updates table
+        self.frameTable.cellDoubleClicked.connect(self.cell_clicked)  # Link double click to frame table
         # Setup pokemon fields
         self.raw.setValidator(QtGui.QRegExpValidator(raw_re, self.raw))
-
-    def update_raw(self):
-        data = bytearray.fromhex(self.raw.text())
-        self.mon = BoxMon.from_buffer(data)
-        self.encrypted = True
-
-    def update_field(self, name):
-        if name in MON_FIELDS:  # non-encrypted fields
-            assert hasattr(self.mon, name)
-            if name in ('pid', 'otId', 'checksum'):
-                setattr(self.mon, name, int(getattr(self, name), 16))
-            elif name == 'language':
-                self.mon.language = self.language.value()
-            elif name in ('badEgg', 'hasSpecies', 'isEgg'):
-                num = 1 if getattr(self, name).checked() else 0
-                setattr(self.mon, name), num
-        elif name in SUB0_FIELDS:
-            sub0 = self.mon.sub(0).type0
-            assert hasattr(sub0, name)
-            setattr(sub0, name, int(getattr(self, name).text()) if name == 'experience' else getattr(self, name).value())
-        elif name in SUB1_FIELDS:
-            sub1 = self.mon.sub(1).type1
-            assert hasattr(sub1, name)
-            setattr(sub1, name, getattr(self, name).value())
-        elif name in SUB2_FIELDS:
-            sub2 = self.mon.sub(2).type2
-            assert hasattr(sub2, name)
-            setattr(sub1, name, getattr(self, name).value())
-
-    def update_sub0(self):
-        if self.encrypted:
-            self.mon.decrypt()
-        sub = self.mon.sub(0).type0
-        for k in SUB0_FIELDS:
-            assert hasattr(self.mon, k)
-            setattr(self.mon, k, int(getattr(self, k).text()) if k == 'experience' else getattr(self, k).value())
-        self.update_mon()
-
-    def update_mon(self):  # Update the pokemon display
-        for k, v in self.mon.dump().items():
-            if k in MON_FIELDS:
-                assert hasattr(self, k)
-                getattr(self, k).setText(v)
-        if self.encrypted:
-            self.mon.decrypt()
-        # Substruct 0, Growth
-        for k, v in self.mon.sub(0).type0.dump().items():
-            assert hasattr(self, k)
-            getattr(self, k).setText(v)
-        # Substruct 1, Attacks
-        for k, v in self.mon.sub(1).type1.dump().items():
-            assert hasattr(self, k)
-            getattr(self, k).setText(v)
-        # Substruct 2, EVs and Condition
-        for k, v in self.mon.sub(2).type2.dump().items():
-            assert hasattr(self, k)
-            getattr(self, k).setText(v)
-        # Substruct 3, Miscellaneous
-        for k, v in self.mon.sub(3).type3.dump().items():
-            if k == 'isEgg':
-                self.isEgg_3.setText(v)
-            elif k != 'unk':
-                getattr(self, k).setText(v)
-        if self.encrypted:
-            self.mon.encrypt()
 
     def rng_changed(self):
         self.old_cycle = None
@@ -124,11 +61,13 @@ class GuiWindow(Ui_MainWindow):
     def update_table(self, *args, **kwargs):
         self.frameTable.clearContents()
         self.frameTable.setRowCount(0)
-        if self.tabWidget_3.currentIndex() == 0:
+        currentTab = self.tabWidget_3.currentWidget()
+        self.cycle.setSingleStep(currentTab.property('step_cycles'))
+        if currentTab is self.acc_tab:
             self.acc_table()
-        elif self.tabWidget_3.currentIndex() == 1:
+        elif currentTab is self.crit_tab:
             self.crit_table()
-        elif self.tabWidget_3.currentIndex() == 2:
+        elif currentTab is self.quick_tab:
             self.quick_table()
         else:
             self.wild_table()
@@ -152,6 +91,15 @@ class GuiWindow(Ui_MainWindow):
             table.setItem(row, 2, QtWidgets.QTableWidgetItem(f'{i}'))
             table.setItem(row, 3, QtWidgets.QTableWidgetItem("Yes" if hit else "No"))
             table.setItem(row, 4, QtWidgets.QTableWidgetItem(f'{acc:03d}'))
+
+    def cell_clicked(self, row, column):
+        item = self.frameTable.item(row, 1)
+        if item is None:
+            return
+        try:
+            self.cycle.setValue(int(item.text(), base=10))
+        except ValueError:
+            pass
 
     def crit_table(self):
         seed = int(self.rng.text(), 16) if self.rng.text() else 0
@@ -194,7 +142,7 @@ class GuiWindow(Ui_MainWindow):
             table.setItem(row, 1, QtWidgets.QTableWidgetItem(f'{2*i+self.cycle.value()}'))
             table.setItem(row, 2, QtWidgets.QTableWidgetItem(f'{i}'))
             table.setItem(row, 3, QtWidgets.QTableWidgetItem("Yes" if quick else "No"))
-            table.setItem(row, 4, QtWidgets.QTableWidgetItem(f'{value:04x}'))
+            table.setItem(row, 4, QtWidgets.QTableWidgetItem(f'{value:04X}'))
 
     def wild_table(self):
         seed = int(self.rng.text(), 16) if self.rng.text() else 0
@@ -213,9 +161,8 @@ class GuiWindow(Ui_MainWindow):
             table.setItem(row, 0, QtWidgets.QTableWidgetItem(f'{base:08X}'))
             table.setItem(row, 1, QtWidgets.QTableWidgetItem(f'{i+self.cycle.value()}'))
             table.setItem(row, 2, QtWidgets.QTableWidgetItem(f'{i}'))
+            # TODO: Add Slot
             table.setItem(row, 4, QtWidgets.QTableWidgetItem(f'{pid:08X}'))
-
-
 
 
 def main():

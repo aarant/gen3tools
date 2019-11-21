@@ -26,7 +26,7 @@ class Substruct1(LittleEndianStructure):  # Attacks substructure
         return d
 
 
-class Substruct2(LittleEndianStructure):  # EVs & Condition
+class Substruct2(LittleEndianStructure):  # EVs & Condition substructure
     _fields_ = [('hpEV', u8), ('attackEV', u8), ('defenseEV', u8), ('speedEV', u8),
                 ('spAttackEV', u8), ('spDefenseEV', u8), ('cool', u8), ('beauty', u8),
                 ('cute', u8), ('smart', u8), ('tough', u8), ('sheen', u8)]
@@ -38,10 +38,11 @@ class Substruct2(LittleEndianStructure):  # EVs & Condition
         return {tup[0]: '%d' % getattr(self, tup[0]) for tup in self._fields_}
 
 
-class Substruct3(LittleEndianStructure):  # Miscellaneous
+class Substruct3(LittleEndianStructure):  # Miscellaneous substructure
     _fields_ = [('pokerus', u8), ('metLocation', u8), ('metLevel', u16, 7), ('metGame', u16, 4), ('pokeBall', u16, 4),
                 ('otGender', u16, 1), ('unk', u32, 30), ('isEgg', u32, 1), ('altAbility', u32, 1)]
 
+    # These properties are hack-ish but necessary
     @property
     def hpIV(self):
         return (self.unk >> 0) & 0x1f
@@ -65,8 +66,6 @@ class Substruct3(LittleEndianStructure):  # Miscellaneous
     @property
     def spDefenseIV(self):
         return (self.unk >> 25) & 0x1f
-
-
 
     def __str__(self):
         return '\n'.join('{}: {}'.format(k, v) for k, v in self.dump().items())
@@ -139,7 +138,7 @@ class BoxMon(LittleEndianStructure):
                          in range(0, 20 * 8, 32)]))
         print()
         print(s)
-        with open('pokemon.txt', 'w') as f:
+        with open('pokemon.txt', 'w') as f:  # TODO: Hack
             f.write(s)
 
     def test_legality(self):
@@ -209,7 +208,6 @@ def test_moves(mon):  # mon must be decrypted
     attacks = mon.sub(1).type1
     attacks.pp[0] = 10
     mon.checksum = mon.calc_checksum()
-
 
 
 def analyze_loop():
