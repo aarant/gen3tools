@@ -254,3 +254,5 @@ gender_thresholds = {'1:7': 225, '1:3': 191, '1:1': 127, '3:1': 63, '7:1': 31}
 if __name__ == "__main__":
     import doctest
     doctest.testmod()
+    for i, pid, evs in method1_mons(cycle=1025, limit=100):
+        print(f'{i:06d} {pid:08X} {evs}')

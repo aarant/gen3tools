@@ -1,7 +1,7 @@
 SECTIONS {
-    . = 0x0203d000;
+    . = %ADDR%;
     .text :
     ALIGN(4) {
-        temp.o(.text);
+        %PATH%(.text);
     }
 }

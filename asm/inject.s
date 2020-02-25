@@ -3,6 +3,8 @@
 .thumb
 .include "event.inc"
 
+@ Universal data writer
+
 WarpJP: @ 02031834
   ldr r0, warpDest
   ldr r1, hofWarp

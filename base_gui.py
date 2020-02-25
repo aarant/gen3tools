@@ -918,5 +918,3 @@ class Ui_MainWindow(object):
         self.isEgg_3.setText(_translate("MainWindow", "Egg"))
         self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.miscTab), _translate("MainWindow", "Misc."))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_4), _translate("MainWindow", "Pokemon"))
-
-

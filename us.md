@@ -33,6 +33,120 @@
 | ResetEventObjects | 0808d438 |
 | LoadEventObjects | 08076e64
 | GetRamScript | 08099188 |
+| Box Names | 02031B70 |
+| GiveBoxMonInitialMoveset | 08069270
+| moveset loop | 080692C2
+
+## Front Sprite ACE Targets
+```
+Species Address  EVs
+085B =  0206FFFF (091 HP 008 AT) X
+08B7 =  0206FFFF (183 HP 008 AT) X
+0A8C =  0206FFFF (140 HP 010 AT) X
+40E9 =  0206FFFF (233 HP 064 AT) Y - Box 12 Slot 3 Nickname
+45BB =  0206FFFF (187 HP 069 AT) X
+E692 =  0206FFFF (146 HP 230 AT) X
+
+0525 =  02FE0600 (037 HP 005 AT) X
+0599 =  0206FEFE (153 HP 005 AT) X
+0611 =  0206FEFE (017 HP 006 AT) X Y - Box 11 Slot 30 Nickname?
+0673 =  82847F80 (115 HP 006 AT) X
+0737 =  82847F80 (055 HP 007 AT) X
+0799 =  0206FEFE (153 HP 007 AT) X
+09F7 =  02020000 (247 HP 009 AT) X
+0A04 =  02FE0600 (004 HP 010 AT) X
+0A3B =  0206FEFE (059 HP 010 AT) X
+0A3E =  02020000 (062 HP 010 AT) X
+0A5E =  0206FEFE (094 HP 010 AT) X
+0A7B =  02FE0600 (123 HP 010 AT) X
+0AAA =  02FE0600 (170 HP 010 AT) X
+0B15 =  02020000 (021 HP 011 AT) X
+0B50 =  82847F80 (080 HP 011 AT) X
+0B59 =  0206FEFE (089 HP 011 AT) X
+0B99 =  02FE0600 (153 HP 011 AT) X
+```
+## Sprite ACE
+- Acquire DOTS, or a similar corruption target, with (233 HP, 64 AT) EVs
+- Place in Box 2 Slot 24
+- Corruption target address is 0202A8D0
+- Acquire species 0x40E9 via single or double corruption
+- Name Box 1 (x♂xC). This ensures that when hatching, the animation won't crash
+- If single corruption + hatching, nickname it the THUMB bootstrap and place it in Box 12 Slot 4
+- If double corruption, name a pokemon the THUMB bootstrap and place in Box 12 Slot 3
+- Place ARM code starting in Box 12 Slot 13 and every 10 slots after
+- THUMB target address is 0206FFFF (Box 12 Slot 3 nickname)
+
+### Execution Info
+r0: 02020784   r1: addr   r2: 00000010   r3: 00000000
+r4: 02020784   r5: 020207C2   r6: 00000005   r7: 00000001
+r8: 00000000   r9: 00000000  r10: 00000000  r11: 00000000
+r12: 00000040  r13: 03007EDC  r14: 080069E7  r15: 02070004
+- Preserve r2-r7
+- call 08175620
+- gSaveBlock1Ptr: 03005d8c
+- ARM BX lr at 08000398
+- SetBoxMonData: 0806ad9c+1
+- DecryptBoxMon: 0806A24C+1
+- GameClear: 08137734+1
+- OT branch: (EA0000AE) (-  v) (+10 pokemon) or (I  v) (+10 pokemon?)
+- Nickname branch: (ea0000b1) ("  v) (+9 pokemon)
+### Bootstrap
+```
+box_12_04: @ (x♂zN”6FFxC)
+PUSH r2-r3,r5-r7,lr       B5EC @ preserve necessary registers
+LDMIA r0!,r1-r3,r5-r7     C8EE @ do not touch r4!
+ADD r7,pc,nn              A7B2 @ (B2 is +9 pokemon ahead)
+STMIA r0!,r6,r7           C0C0 @ store new jump address
+POP r2-r3,r5-r7,pc        BDEC @ restore registers and jump out
+```
+### Bootstrap with bad ID
+```
+box_12_03: @ (  x♂”6G'FC)
+NOP                       0000
+PUSH r2-r3,r5-r7,lr       B5EC @ preserve necessary registers
+ADD r7,pc,nn              A7B2
+PUSH r0,r6-r7             B4C1
+POP r6-r7,pc              BDC0
+
+box_12_12: @ (  zN”6FFxC)
+NOP                       0000
+LDMIA r0!,r1-r3,r5-r7     C8EE @ do not touch r4!
+ADD r7,pc,nn              A7B2 @ (B2 is +9 pokemon ahead)
+STMIA r0!,r6,r7           C0C0 @ store new jump address
+POP r2-r3,r5-r7,pc        BDEC @ restore registers and jump out
+```
+
+### Hall of Fame Warp
+```
+box_12_13: @ (mFloyLRo  )
+MVN r12,0xe1        E3E0C0E1 @ r12=ffffff1e
+BIC r12,0xed>>12    E3CCC6ED @ r12=f12fff1e
+box_12_23: @ (m”RoLT-n  )
+BIC r11,r12,0xe1>>4 E3CCB2E1 @ r11=BX r0
+ADC r12,lr,C60      E2AECEC6 @ r12=08007647
+box_13_03: @ (YN?nFNRo  )
+ADC r12,D30000      E2ACC8D3 @ r12=8D37647
+BIC r12,C00000      E3CCC8C0 @ r12=8137647
+box_13_13: @ (z ?n?E0q  )
+ADC r0,r12,EE       E2AC00EE @ r0=GameClear
+STR r11,[r1+0xFAC]  E5A1BFAC @ write BX r0 to Box 14 Slot 3 OT
+```
+
+### Store BX on OT
+```
+MVN r12,0xe1        E3E0C0E1 @ r12=ffffff1e
+BIC r12,0xed>>12    E3CCC6ED @ r12=f12fff1e
+BIC r11,r12,0xe1>>4 E3CCB2E1 @ r11=BX r0
+STR r11,[r1+0xBEC]  E5A1BFAC @ write BX r0 to Box 13 Slot 29 OT
+B+11                EA0000D9
+BIC r0,lr
+```
+
+```
+box_14_3:
+MOV r12,B10         E3B0CEB1
+STRH r12,[r11+4]    E1CBC0B4
+```
 
 ## Ram Script ACE
 - magic = 51
@@ -40,8 +154,9 @@
 - call to checksum: 080991BE
 - checksum done: 080991C2
 
-## Pomeg glitching
+## Pomeg Glitch
 - starts at 0202A888, goes down by 100 (0x64)
+- first 0x40 corruption at 0202A8D0 (Box 2 Slot 24)
 
 RNG initially lags 273 frames, but this diverges over time.
 
@@ -137,7 +252,6 @@ gMoveResultFlags: MISSED is 1
 - CreateMon
 - CreateBoxMon:
   8 pushes, -0x20 (-64 bytes)
-
 
 ## Youngster Calvin
 - +1 AT
@@ -239,7 +353,6 @@ DE: Silcoon, Cascoon, Skarmory +2
 SA: Magneton (New Mauville) +2
 SD: Lombre (Route 114) +2
 SP: Golbat (Meteor Falls), Electrode (New Mauville) +2, Linoone (118) +2
-
 
 ## Move ACE
 - Glitch move `0x1608` reads from 02030400 (Box 12, slot 15)
@@ -358,15 +471,31 @@ loop:
                   0800587A: character is read
                   08005C14: CopyGlyphToWindow
 
+## Back Sprite ACE
+- GetSpeciesBackAnimSet: 0817f474
+- LaunchAnimationTaskForBackSprite: 0817f594
+- after GetNature: 0817F5D0
+- store tAnimId at 0817F5EA
+- read tAnimId at 0817F4F4 (Task_HandleMonAnimation)
+- backAnimSet = sSpeciesToBackAnimSet[species] - 1 (only if not equal to zero)
+- animId = 3 * backAnimSet + sBackAnimNatureModTable[nature]
+- tAnimId = data[3] = sBackAnimationIds[animId]
+- target = sMonAnimFunctions[tAnimId]
+
+- u8 backAnimSet = 0860A8C8[species] - 1
+- u8 animId = 3 * backAnimSet + 0860AD2F[nature]
+- u8 tAnimId = 0860ACE4[animId]
+- u32 target = 0860aa88[4*tAnimId]
+
 ## Signature pokemon
 - Roxanne: Probopass
-- Brawly: Medicham
+- Brawly: Hariyama
 - Wattson: Manectric
-- Flannery: Magcargo/Torkoal
+- Flannery: Torkoal
 - Norman: Slaking
 - Winona: Altaria
 - Tate&Liza: Lunatone&Solrock
-- Juan/Wallace: Whiscash/Politoed/Milotic
+- Juan/Wallace: Politoed/Milotic
 - Sidney: Shiftry
 - Phoebe: Banette/Dusknoir
 - Glacia: Glalie/Froslass

@@ -38,9 +38,81 @@ def ace_targets(buffer, start=356, end=0xfefe):
                     input()
 
 
+def canonicalize(addr: int):  # Un-mirror an address
+    if addr & 0xf0000000:  # Invalid
+        return addr
+    if 0x02000000 <= addr < 0x03000000:
+        return addr & 0x0203ffff
+    else:
+        return addr
+        raise NotImplementedError(f'Address {addr:08X} not implemented.')
+
+
+def front_sprite_callback(f, species: int):  # Calculate sprite callback address for a species
+    if not 0 <= species < 2**16:
+        raise Exception(f'Species {species} out of bounds')
+    # JPN
+    tAnimId = read(f, 0x082FA374+species-1, 1)  # sMonFrontAnimIdsTable[species - 1]
+    target = read(f, 0x085D34E8+4*tAnimId)  # sMonAnimFunctions[tAnimId]
+    # US
+    tAnimId = read(f, 0x083299ec+species-1, 1)
+    target = read(f, 0x0860aa88+4*tAnimId)
+
+    # target = canonicalize(target)
+    # print(f'{target:08X}')
+    return target
+
+def back_sprite_callback(f, species: int, nature: int):  # Calculate back sprite callback
+    if not 0 <= species < 2**16:
+        raise Exception(f'Species {species} out of bounds')
+    nature %= 25
+    # US values
+    sSpeciesToBackAnimSet = 0x0860A8C8
+    sBackAnimNatureModTable = 0x0860AD2F
+    sBackAnimationIds = 0x0860ACE4
+    sMonAnimFunctions = 0x0860aa88
+    # # JP values
+    # sSpeciesToBackAnimSet = 0x085D3328
+    # sBackAnimNatureModTable = 0x085D378F
+    # sBackAnimationIds = 0x085D3744
+    # sMonAnimFunctions = 0x085D34E8
+    backAnimSet = read(f, sSpeciesToBackAnimSet+species, 1)  # sSpeciesToBackAnimSet[species] - 1
+    if backAnimSet != 0:
+        backAnimSet -= 1
+    animId = 0xff & (3 * backAnimSet + read(f, sBackAnimNatureModTable+nature, 1))  # 3 * backAnimSet + sBackAnimNatureModTable[nature]
+    tAnimId = read(f, sBackAnimationIds+animId, 1)  # sBackAnimationIds[animId]
+    target = read(f, sMonAnimFunctions+4*tAnimId, 4)  # sMonAnimFunctions[tAnimId]
+    return target
+
+def list_back_sprite_callbacks(f):
+    low = 0x02000000
+    high = 0x03000000
+    print('Species Nat Addr EVS')
+    for species in range(2**16):
+        for nature in range(25):
+            target = back_sprite_callback(f, species, nature)
+            target2 = canonicalize(target)
+            if (low <= target < high):# and target != 0x02020000:
+                hp = species & 0xff
+                at = (species // 8) & 0xff
+                print(f'{species:04x} {nature:02d} = {target:08x} {target2:08x} ({hp:03d} HP {at:03d} AT)')
+
+
+
+def read(f, addr: int, size: int = 4, signed: bool = False):
+    f.seek(addr & 0xffffff)
+    b = f.read(size)
+    i = int.from_bytes(b, 'little', signed=signed)
+    # if size == 4:
+    #     print(f'{i:08X}')
+    # elif size == 2:
+    #     print(f'{i:04X}')
+    # elif size == 1:
+    #     print(f'{i:02X}')
+    return i
+
+
 if __name__ == '__main__':
-    with open('../pokeemerald/Emerald (J).gba', 'rb') as f:
-        buffer = f.read()
-        ace_targets(buffer, end=0x3110)
-        #dump_words(buffer, 0x08283738, 4)
-        #search(buffer, [0x02330000, 0x18020805, 0x82085727, 0x20000007])
+    with open('../pokeemerald/pokeemerald.gba', 'rb') as f:
+        f.seek(0)
+        list_back_sprite_callbacks(f)

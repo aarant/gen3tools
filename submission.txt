@@ -1,7 +1,18 @@
+A TAS of Pokemon Emerald using Arbitrary Code Execution (ACE) to take the game where it's never gone before, faster than ever before!
+
 %%TOC%%
 
+!!! Encoding
+Please use [http://tasvideos.org/userfiles/info/61060576732601820|this movie] for encoding!
+
+Suggested screenshot(s): https://imgur.com/a/Dv5pu3M
+
 !!! Description
-Emulator used: mGBA
+Emulator used: BizHawk 2.4 (mGBA core)
+
+I started on 2.3.2, but it syncs on both that version and 2.4.
+
+You'll need to set Skip BIOS to False and the RTC initial time to 1/1/2010.
 
 !!! Objectives
 * Starts from scratch; no save data
@@ -12,154 +23,324 @@ Emulator used: mGBA
 * Executes arbitrary code
 
 !!! Introduction
-When I started working on the Pokemon Emerald [https://github.com/pret/pokeemerald| decompilation project],
-I learned about some of the glitches in the game, including arbitrary code execution using glitched moves via the
-Pomeg glitch. I then found out that you can get Pomeg berries from the Berry Master a few minutes than published
-glitch runs do, but that this was only useful if I could make arbitrary code execution work. I started to wonder if it
-would be possible to beat the game even faster by exploiting this.
+Pokémon Emerald is the final game in the 3rd generation of Pokémon, developed by GameFreak and released in 2005 as the
+sequel to Ruby & Sapphire. The game features a new story where you capture and fight with Pokémon against not one but
+two villainous teams. It also has a few new glitches not present in the games before it.
 
-There are various videos on Youtube describing how to set up arbitrary code execution in Emerald, but none of them are
-quite fast enough to be useful for a TAS--they require many, RNG-dependent corruptions to set up, require acquiring
-many glitch items to write the actual code, or require the use of in-game trade pokemon or EV training.
+When I started working with the Pokémon Emerald [https://github.com/pret/pokéemerald|decompilation project],
+I learned about many of these glitches, including arbitrary code execution using glitch moves via the
+Pomeg glitch. I found out that Pomeg berries were available several minutes before the published TAS and RTA runs picked
+them up, and wondered why this was the case. Previous runs beat Emerald by acquiring a pokémon with a glitch Instant Victory
+Move, which let them win any battle, but they still had to beat the 6th gym and the Elite Four to finish the game.
 
-I started to pursue a better way, and gave it up after a few weeks, frustrated by the difficulty.
-Eventually I came back to it and realized that, on the Japanese version of Emerald, I could make ACE viable in a TAS,
-and even in a speedrun.
+ACE setups for Emerald had been researched by Metarkai and others and were known to be possible. There are a few Youtube
+videos around describing how to perform them, but none of the setups were fast enough to be useful for a TAS—they either
+require many unlikely corruptions to set up, write code via glitch items that take time to acquire, or need in-game trade
+pokémon that are too far out of the way to get.
 
-This TAS is the result of this research, and as far I know is the first of its kind, using Japanese Pokemon nicknames
-to write its opcodes and beating the game with only 5 badges, almost 12 minutes ahead of the current record.
+If a better, more consistent ACE could be found, the game could be beaten with only 5 badges and in much less time.
+I became convinced that this had to be possible. But in order to find out, I had to do my own research.
+
+I started to look for a better way, and gave it up after a few weeks out of frustration. I had been testing on the
+English version of Emerald, using nicknames to write code, but because of the limited character set it was painful
+and impractical. Eventually I tried again and found that on the Japanese version of Emerald, things were better and ACE
+could be a viable strategy in a TAS, and possibly even RTA.
+
+This TAS is the result of that research, and, I think, demonstrates a significant technical improvement, beating the game
+with only 5 badges using a custom payload written in Japanese PC Boxes.
+
+The result is an almost 20 minute improvement over the published TAS.
 
 !!! Terminology
-I will use the terms "frame" and "cycle" throughout, so it is important to distinguish them:
-; Frame: Exactly 280,896 cpu cycles or 1/59.73th of a second
+There are a few terms I'll use that are important to distinguish:
+; Frame: Exactly 280,896 cpu cycles or 4389/262144 of a second. Emerald runs at approximately 59.73 FPS.
 ; Cycle: 1 advancement of the RNG state.
-1 cycle is not always equal to 1 frame, because many things advance the RNG:
-* In the overworld, the RNG is advanced once per frame
-* Each time an NPC/trainer turns or walks on their own, the RNG is advanced
-* In battle, the RNG is advanced twice per frame
+Cycles are not in sync with frames because many things advance the RNG state:
+* In the overworld, the RNG advances once per frame
+* Each time an NPC/trainer turns or walks on their own, the RNG advances
+* In battle, the RNG advances twice per frame
 * AI/Accuracy/critical/damage calculation advances the RNG
-It is important to count both cycles and frames, because some events in the game are cycle-locked, but not frame-locked,
-meaning that they must occur at a certain cycle but that cycle may possibly be reached at an earlier frame.
-As a result, frames can sometimes be saved by waiting in a battle rather than in the overworld to make the RNG state
-advance faster.
+* Crossing encounter tiles (grass) advances the RNG 1-2 times during the encounter check
+* Running near NPC trainers (spinners) advances the RNG around twice per frame
+It's important to count both cycles and frames, because some events in the game are cycle-locked but not frame-locked,
+meaning that they occur on a certain cycle but that cycle may possibly be reached at an earlier frame.
+There are many cases where frames can be saved by advancing the RNG faster than it otherwise would, such as in battles
+or near spinners.
 
 !!! RNG Manipulation
-Emerald's RNG is a 32 bit [link|LCRNG] that uses the formula: next = current * 0x41c64e6d + 0x6073.
-When used for calculations, the high 16 bits are shifted right 16 bits; the lower 16 are not used.
+Emerald's RNG is a 32 bit [https://en.wikipedia.org/wiki/Linear_congruential_generator|LCG] that uses the formula
+{{next = (current * 0x41c64e6d + 0x6073) mod 2^32}}.
+The full 32-bit state is not exposed when the RNG is used—only the high 16 bits are shifted right and returned.
+Throughout, {{rng}} will refer only to the high 16 bits of the full 32-bit state.
 
-Because of a programming oversight, it is not seeded on soft reset, meaning that the initial seed is always zero.
+Because of a programming oversight, the RNG is not seeded on soft reset, meaning that the initial seed is always zero.
 The only time the RNG is seeded is when starting a new game, immediately after the player confirms their name.
 This process is quite precise: when the naming screen is entered, the game starts one of the GBA's fast timers, which runs
-much faster than the framerate. The timer is stopped and the RNG seeded with its value when the name is confirmed.
+at a multiple of the CPU clock much faster than the framerate. Confirming the name stops this timer and seeds the RNG with its value.
 
 !! Trainer ID/Secret ID Manipulation
-The visible trainer ID is set when the name is confirmed; it is also the value that seeds the RNG.
+The visible trainer ID is set when the name is confirmed; this is also the value used to seed the RNG.
 The hidden, secret ID is set just before your sprite disappears after Birch's speech, using the RNG state at that time.
-In-game, these values are combined internally into a single 32 bit value, with the TID and SID as the low and high 16 bits.
+In-game, these values are combined internally into a single 32 bit value, with the TID and SID as the low and high 16 bits respectively.
 Although the timer for the TID is very fast, it can be manipulated in a limited way by waiting/pressing more or fewer buttons
-in the naming screen, because pressing a button takes more cycles than not doing so. The SID can be manipulated simply
-by waiting.
+in the naming screen, because pressing a button takes slightly more cycles. The SID can be manipulated simply
+by waiting for the correct cycle.
 
 !! Method 1 (Mudkip) manipulation
-Smogon has an [link|excellent article] on this. When you pick a starter, the RNG is advanced 4 times.
-* The first and second values become the low/high 16 bits of the [link|PID], respectively.
-* The third and fourth values become the pokemon's IVs.
+Smogon has a [https://www.smogon.com/ingame/rng/emerald_rng_part2|good article] on this.
+When you pick a starter, the RNG is advanced 4 times.
+* The first and second values become the low & high 16 bits of the [https://bulbapedia.bulbagarden.net/wiki/Personality_value|PID], respectively.
+* The third and fourth values become the starter's IVs.
 
 !! Battle AI/Quick Claw manipulation
-Each turn in battle, just before the game displays the FIGHT option, the AI for the opponent runs, advancing the RNG
-some number of times (this is highly variable, and dependent on which pokemon they're facing, their moves, etc). A value
-known as the {{randomTurnNumber}} is also chosen from the RNG. This is only used for Quick Claw--if it is less than 0x3333,
+Each turn in battle, just before the game displays the FIGHT option, the opponent's AI runs, advancing the RNG
+a number of times (this is highly variable, and dependent on what your pokémon is, their moves, etc). A value
+known as the {{randomTurnNumber}} is also chosen from the RNG. This is only used for Quick Claw—if it is less than 0x3333,
 Quick Claw will activate and the holder will go first.
 
-By manipulating the timing of turns, especially when the opponent sends out a new pokemon, opponent AI decisions can be
-manipulated somewhat, and we can engineer turns on which Quick Claw will activate.
+By manipulating the timing of turns opponent AI decisions can be manipulated to choose certain moves or Quick Claw activation.
 
 !! Accuracy/Critical/Damage Manipulation
 Whether a move will hit is determined just before the attack string is printed. The formula is:
-{{if (rng mod 100) + 1 <= move_accuracy * stages then HIT}}, where {{stages}} is a scaling value that is normally 1,
-and goes up/down with user accuracy stages/target evasion stages.
+{{if (rng mod 100) < move_accuracy * stages then HIT}}, where {{stages}} is a scaling float that is normally 1,
+and goes up & down with accuracy and evasion stages.
 
 Critical and damage calculation are done just after the attack string is printed.
 Damage calculation happens 6 cycles after critical calculation.
 
 The critical formula is: {{if (rng mod crit_mod) == 0 then CRIT}}; in this run {{crit_mod}} is always 16.
-Damage is calculated as a scaling value, from 85-100 inclusive: {{scale = 100 - (rng mod 16)}}.
+Damage is calculated as a scaling value, from 85-100%, inclusive: {{scale = 100 - (rng mod 16)}}.
 
 A critical hit always doubles the damage a move will do.
 
-!! Wild Pokemon/Encounter manipulation
+!! Wild Pokémon/Encounter manipulation
 There is an important overworld value called the {{tileTransitionState}}. This value is normally 1 while moving, 0
 when standing still, and briefly 2 when the player passes over the center of a tile.
 
 Encounters occur 1 frame/2 cycles after the frame __before__ the state becomes 2.
-If stepping into a tile that is the same as the current one (i.e grass to grass), the formula is:
+If stepping between similar tiles (i.e grass into grass), the formula is:
 {{if (rng mod 2880) < rate * 16 then ENCOUNTER}}, where {{rate}} is the encounter rate of the area.
 
 If an encounter occurs, the RNG is advanced several times:
-# {{slot = rng mod 100}}. Each land area has 12 slots; the slot value is used to choose which pokemon appears
-# level is calculated based on a range
-# {{nature = rng mod 25}}
-Afterwards, the RNG is advanced twice at a time, forming a PID, until {{PID mod 25 == nature}}
+# {{slot = rng mod 100}}. Each land area has 12 slots; the slot value determines which pokémon appears. The twelve slots together cover the entire 0-99 range.
+# The RNG is used to calculate the encounter level.
+# {{nature = rng mod 25}}. The RNG is rolled to pick an initial nature. Afterwards, the RNG is advanced twice at a time, forming a PID, until {{PID mod 25 == nature}}
 
 Encounters can be manipulated by timing the cycle on which the tile transition occurs. When on the bike, the encounter
-rate is reduced by 20% (the rate is calculated as {{rate * 16 * 80 / 100}}).
+rate is reduced by 20% (the rate is calculated as {{rate * 16 * 80 / 100}}). There are also fewer slots when surfing,
+and some other minor details that aren't too important.
 
 !!! Game version
-Although text does go by slightly faster on the Japanese version of Emerald, this is not why I chose it. Rather,
+Although text does move slightly faster on the Japanese version of Emerald, this is not why I chose it. Rather,
 the advantage of JP Emerald lies in its
 [https://bulbapedia.bulbagarden.net/wiki/Character_encoding_in_Generation_III#Japanese | character set].
-The ARM instructions that will be executed are written in Pokemon nicknames, as catching and naming pokemon is very fast
-(we catch 9 pokemon in total: Abra to use as a bootstrap, and 8 Poochyena containing the code). However, on US Emerald,
-the number of bytes that can be input in nicknames is very limited. It is still possible to construct a credits warp
-payload in around 18 instructions, but the bootstrap code on Abra is a different story. A similar run on US Emerald would
-require writing the bootstrap code in Abra or Mudkip's EVs, which would require additional EV training and put more
-restrictions on the properties of their PIDs. It is almost certainly slower.
+The Japanese character set gives access to many more bytes than the English set. These characters are used to write
+the bootstrap pointer to execute code (Wingull's nickname), and the bootstrap payload (PC Boxes 1-5).
 
-On JP Emerald, however, almost every byte can be input, and even though names in JP can only be 5 characters long,
-making a payload to run whatever we want is very fast.
-Learning that JP had this property and disassembling the Japanese ROM is what enabled this run in the
-first place.
+It is possible to do ACE on US Emerald, but the setup is longer and the code you can write is more limited. Code can
+also be written using glitch items or EVs, but this takes even longer and would not save time.
+
+Learning that JP had this property and disassembling the Japanese ROM is what inspired me to make this TAS in the first
+place.
 
 !!! Pomeg Glitch
-As far as I can tell, the Pomeg glitch was known since around 2007 to exist, but it took years for its potential to be
-noticed. By using a pomeg berry on a pokemon that gained 1 HP from EVs, its HP will decrease by 1. If the pokemon
-is at 1 HP when the berry is used, it will be knocked out, even if it is the last conscious pokemon, and the player will
-not white out. This is used to enable a subglitch known as Glitzer Popping.
+The Pomeg glitch has been known since around 2006-2007, but it took years for its full potential to be realized.
+The name comes from the use of Pomeg berries.
+Using a Pomeg Berry on a pokémon which gained 1 HP through EVs will decrease its HP. If the pokémon is at 1 HP when
+it is used, it will be knocked out, even if it is the last conscious pokémon. This will not force the player to white out
+and the totally KO-ed party allows you to battle with Eggs and perform Glitzer Popping, etc.
 
-!!! Glitzer Popping
-Named by Werster, this Pomeg Berry subglitch works by accessing pokemon beyond the sixth slot of the party.
+!! Glitzer Popping
+Named by Werster, this glitch works by accessing "pokémon" beyond the sixth slot of the party and modifying memory.
 
-The procedure works as follows:
-# Create a team of two fainted pokemon, and one pokemon that can be used for the Pomeg glitch with 1 HP, in order
-# Enter a wild battle and flee. The game sets the slot of the last conscious pokemon seen to the Pomeg pokemon slot
-# Deposit the first fainted pokemon. Now there is no pokemon on that slot, but the player still has a conscious pokemon.
-# Use the Pomeg Berry to KO the conscious pokemon without whiting out. Now the player has no conscious pokemon.
-# Enter a wild battle. The game sees that all pokemon are KOed, and so sends out the pokemon in the saved slot, which in this case is an empty ??? (Decamark) whose data is all zeroes.
-# Enter pokemon selection and view the summary of the 2nd pokemon in the party, and exit it. The game runs anti-cheat checks against the party pokemon, which invalidates the ??, causing it to be treated as an actual pokemon and not zeroes.
-# Because the ??? is considered a real pokemon, pokemon above it can be selected. This warps the selection pointer into
-RAM, starting at Box 2 Slot 24 in the PC, and ascending 100 bytes with each up press.
+Bulbapedia has an [https://bulbapedia.bulbagarden.net/wiki/Glitzer_Popping|article] on this glitch.
 
-As the pointer ascends, it treats 100-byte blocks of memory as party pokemon, and performs the same anti-cheat
-function on them. If the checksum of this pokemon is invalid, a few bits will be set or flipped corresponding to the
-{{isEgg}} and {{badEgg}} bits.
+The procedure in this run works as follows:
+# In order, create a team of: 1 "sacrifice" pokémon, 1 pokémon at 1 HP for the Pomeg glitch, and a third pokémon you want to corrupt.
+# Enter a wild battle, knock out the sacrifice pokémon, switch to the last slot and flee. This sets the slot of the last seen conscious pokémon to 3.
+# Deposit the third pokémon. Now slot 3 is empty, but the player still has the conscious Pomeg pokémon.
+# Use the Pomeg berry on the Pomeg pokémon. Now the player has no conscious pokémon but has not whited out.
+# Enter a wild battle. The game scans the player party for conscious mons, to update the slot index accordingly. Since it sees none, it does not update the index, and sends out the now-empty slot 3, a ?? or "Decamark".
+# Enter the party menu, view the summary of the sacrifice pokémon, and exit it. This refreshes the party count to zero.
+# The party selection pointer underflows, allowing pokémon above slot 1 to be selected with the Up key.
+# The selection pointer is warped into non-party memory, starting at Box 2 Slot 24 of the PC, and ascending 100 bytes with each up press.
+
+As the pointer ascends, it treats 100-byte blocks of memory as party pokémon, and runs an anti-cheat function on them.
+If the checksum of this "pokémon" is invalid, which is likely, a few bits will be set or flipped corresponding to the
+{{isEgg}} and {{badEgg}} bits, turning it into a Bad Egg. This minor bit-flipping allows for precise RAM corruption.
 
 !! RAM Corruption
 When the pointer selects an invalid block, two types of corruption can occur:
 * Type 1 corruptions are fixed, 20 bytes after the pointer, and set bits 0 and 2 to 1.
-* Type 2 corruptions vary depending on the PID of the block and can set bit 6 to 1 or 0.
+* Type 2 corruptions vary depending on the PID of the block and can set bit 6 to 1 or 0 depending on "pokémon" data.
+Corrupting a pokémon's PID can swap the order of its [https://bulbapedia.bulbagarden.net/wiki/Pok%C3%A9mon_data_structure_in_Generation_III|data structures], like swapping EVs and Moves.
+If done carefully, this corruption will not make the pokémon illegal and will give access to "glitch" moves or pokémon
+outside the normal move/species lists.
+
+Another anti-cheat feature works in our favor here: PC and Item data's memory locations are randomly shifted by an
+offset whenever the player opens the party menu, enters a battle, etc. Since the memory location of a pokémon targeted
+for corruption can be manipulated, but the corruption locations are fixed, certain kinds of corruptions are always
+possible, you just need to roll the right memory layout.
+
+In this run, corruption type 2 is used to set bit 6 of Marshtomp's PID, causing its EV data to turn into its move data.
+This turns it into an Egg and lets us acquire the glitch move needed to trigger ACE by carefully controlling
+Marshtomp's EVs.
+
+!! Glitch Move ACE
+Since glitch moves are out of range of the normal list of moves in the game, their effects are read from
+unintended memory areas. These effects can be anything from allowing Instant Victory/Flee Glitch, to just crashing
+the game, to allowing for code execution.
+
+On Japanese Emerald, glitch move 0x3110's animation script points to RAM rather than ROM and so what it does can
+be manipulated. Animation scripts can create sprites, launch visual or sound tasks, end themselves or hang forever.
+
+By writing a custom script, we can launch a sound task at a RAM address we control and have the game run our __own__ code!
+This gives us the ability to do anything we want, including beating the game in a number of ways.
 
 !!! Routing
 The early game is similar to previous Emerald TASes. The main differences pre-Pomeg are:
-* 2 HP Ups are picked up, one on Route 116, and one on Route 111 (requires Surf).
-* 3 Proteins are picked up, one on Route 114, one one in the Route 111 desert, and one on Route 106 (requires Surf).
-* Marshtomp knocks out 2 Solrock in Meteor Falls to gain 2 Attack EVs.
-* Fly is not needed and so there is no need to catch a Tailow.
-* 8 Poochyena are caught on Route 103 after Norman.
-* The Elixir on Route 110 is picked up to use on Marshtomp later.
-* 1 Pomeg Berry is acquired from the Berry Master instead of 2.
+* 2 HP Ups are picked up, one on Route 116, and one on Route 111 after getting Surf.
+* 3 Proteins are picked up, one on Route 114, one in the Route 111 desert, and one on Route 106 with Surf.
+* Marshtomp KOs 3 Solrock in Meteor Falls to gain 6 Attack EVs.
+* Strength is not acquired or used.
+* Pomeg berries are acquired earlier from outside the Berry Master's house.
 
-After getting the Pomeg berry, the route diverges significantly. Everything after is setup for ACE:
-* Abra learns Facade and knocks out a Marill on Route 104 to gain 2 HP EVs.
-* After the 3rd protein is picked up on Route 106, a battle with a Wingull knocks out 2 Poochyena and brings Abra to 1 HP.
-* Marshtomp knocks out two Zigzagoon to gain 2 Speed EVs to avoid crashing the game. This is done on Route 102.
-* Glitzer Popping corruptions and the actual ACE happen on Route 101.
+After getting the Pomeg berry, the route diverges significantly. Everything is set up for ACE:
+* Fly is not needed and so there is no need to catch a Tailow.
+* A "sacrifice" pokémon (Poochyena) is caught.
+* Abra learns Facade to have a damaging move to use later.
+* After the Protein on Route 106, a Wingull is battled and caught to set up the party for Pomeg Glitch.
+* Everything from the Weather Institute onwards is skipped by warping to the end of the game.
+
+!! Start
+The first thing to do is to disable animations to save time throughout the run, and pick a nice-looking border.
+I chose the kana for 'U' as my trainer name because it was short and represents 'U', the viewer.
+And because it seemed like it might be funny to anyone who speaks Japanese unlike me.
+A few extra buttons (L&R) are pressed here to manipulate trainer ID—since the RNG is seeded
+with the timer here, it's important to pick a good seed that gives us quick access to a good Mudkip!
+
+The first step we take in the truck plays a "bumping" sound, which happens when we bump into a wall and immediately
+turn on the next frame instead of waiting to turn. This is used throughout the run.
+
+Even with the ID prep, we still have to wait a bit for a good Mudkip cycle, so I thought it'd be fun to fake out
+the viewer a bit. I'd love to choose Torchic, but Mudkip is optimal.
+
+Once we have Mudkip, we battle Brendan, get Running Shoes, our Pokédex (not that we'll be filling it much), Poké Balls,
+and we're off!
+
+After beating the Youngster, we do some furious running near the spinner to advance the RNG more quickly for the
+Ralts manipulation.
+
+!! Petalburg City
+We'll need to Teleport to Petalburg a few times later, so we go into the Pokémon Center to set it.
+
+Poor Wally. He wants a Pokémon but can't figure out how to catch one!
+
+Unfortunately for him, we manipulate the Zigzagoon he borrows and the Ralts he fights so that he KOs it instead of catching it. The game doesn't actually take this into account, but we save time by skipping the catch animation.
+
+This can only happen if Zigzagoon has an Attack IV of more than 25, and Ralts has less than 4 HP IVs and 6 Defense IVs, and a Defense-lowering Nature. It's rare for a given RNG cycle to cause this, which is why we wasted some time earlier to time it properly.
+
+We finally get away from Dad, and Wally, only for Scott the stalker to show up and stall us even more. We then head west to Petalburg Woods to find a Devon clerk looking for a Shroomish, but he's attacked by a Team Aqua Grunt! 3 critical Tackles make quick work of his Poochyena though.
+
+!! Rustboro City
+The first thing we do is head right to the Trainer School to get the Quick Claw, which will let Mudkip go first on
+certain turns we can manipulate even if the foe is faster. Then we go into the Gym and battle Youngster Josh, making
+his Geodude whiff so that we can level up and learn Water Gun.
+
+Four Torrent boosted Water Guns later and we've beaten Roxanne and taken our first badge from under her Nosepass! We head out and chase after the Devon clerk from earlier, who tells us the Aqua Grunt stole his Devon Goods.
+We head onto Route 116 in pursuit. We dodge a few spinners, defeat a Hiker, and get to Rusturf Tunnel where Mr. Briney tells us the Grunt has stolen his beloved Peeko. No one messes with Peeko, so we confront the Grunt and reunite Briney and his pet. We head back to Rustboro but on the way, we catch an Abra for Teleport and Pomeg glitching later.
+
+After a very long conversation with Mr. Stone, we get the Pokénav and two more delivery quests. We teleport back to Petalburg to try avoid Brendan...but he shows up anyway at Briney's cottage! Deciding he's not worth battling, we ignore him and ask Mr. Briney to take us to Dewford.
+
+!! Dewford Town
+Our boat is somehow briefly stopped in its tracks by a call on the Pokenav from dad, but we make it to Dewford eventually. Steven really likes rocks and so we find him deep inside Granite Cave to deliver Mr. Stone's Letter. Using the Escape Rope actually loses time here, so we head right out and enter Brawly's gym. Brawly is a tricky fight because of how easily Makuhita can KO us, but with Torrent-boosted Water Gun we acquire the Knuckle Badge and evolve our Mudkip! We then cruise onwards to Slateport.
+
+!! Slateport City
+Not much happens here of note except our final heal of the run from Capt. Stern. From here on every move we use counts.
+
+North on Route 110 are two annoying fights. Plusle and Minun love to use Quick Attack, which outspeeds Marshtomp even with Quick Claw and wastes time, so we manipulate the AI's move choice to get past both PokéFans.
+
+We run into Brendan again, one of the hardest fights in the run at this point. To KO Grovyle we either need two max damage critical Tackles (a 1/256 chance for each), or two critical Mud Shots that print additional text. We manage to get one of each, and also manipulate Grovyle's Absorb damage so we can have the right amount of health for later.
+
+!! Mauville City
+We get Rock Smash so we can smash rocks and the Mach Bike so we can go fast. Wally, his Uncle, and our stalker Scott all stall us, but we eventually get into the Gym. Does Wally's Uncle even have a name?..anyway, this gym goes by fast with Mud Shot for damage and the Quick Claw to outspeed everything.
+
+Next, we head north to Route 111 & 113, though we're interrupted by a call from Wally. We go southwest to Meteor Falls, picking up a Protein on the way, for the most pointless cutscene ever—both Magma and Aqua are up to no good. We KO 3 Solrock for EVs on Marshtomp and leave poor Professor Cozmo there to go back the way we came.
+
+!! Mt. Chimney
+We battle our way up the mountain and breeze through Maxie's monologue. We Tackle Mightyena to start, making sure its Bite leaves us with 10 HP at level 25. A few well-timed Water Guns later and we're ready to head back down the mountain to fight Flannery. That's also the last we'll be seeing of either villainous team this run. Since all of Flannery's pokémon are Fire types our only real challenge is getting the critical hit on Torkoal. After gaining the Heat Badge we head east to Route 111 to pick up our second Protein, then backtrack to Verdanturf for a quick shopping trip (1 Super Potion, 2 X Sp. Attacks, and 1 Fluffy Tail) and an HP Up nearby. Finally, we teleport to Petalburg for the boss fight.
+
+!! Petalburg City Part 2
+We're finally ready to fight Dad. The Gym trainers we fight are chosen to limit the EV gain on Marshtomp so that we don't go over the amount we need. We use our Super Potion to heal Marshtomp almost to full to prepare for the most difficult fight in the run. Even at +2 boosts from the X Sp. Attacks, we still need critical hits to defeat all of Norman's pokémon. Remember all that talk about managing health? If we have more than around 30 when we get to Slaking, it will always use Facade, which always KOs us. If we have less than about 25, its weaker Faint Attack will KO us. In that narrow range, we can just barely survive a Faint Attack, avoid activating Slaking's Sitrus Berry and KO it on its second turn out. We claim our 5th badge and victory over Dad, talk to "Uncle" to get Surf, and head out to completely ignore the rest of the game's story.
+
+!! Route 119
+Here is where the fun really begins. We make the long trek back to Mauville and Route 119, catching a Poochyena on the way. We teach Facade to Abra and Surf to Marshtomp to cross the water and pick up a 2nd HP Up, only to be stopped by our first and only Double Battle. Importantly, Abra gains an HP EV and levels here, but doesn't really do much. We head east to chat with Steven and do some furious running near the blonde spinner to set up an encounter later.
+
+Finally we get what we came for—Pomeg Berries! Before we Teleport back to Petalburg, we take the important step of reording our party for Glitzer Popping.
+
+!! Route 105
+This quick detour is just for the 3rd Protein on the shore. With all our vitamins acquired, we force-feed them to poor Abra and Marshtomp. The running we did earlier advanced the RNG enough to give us quick access to a level 29 Wingull encounter here, which KOs Poochyena and brings Abra to 1 HP. Encounters earlier than this are either too weak to do much damage to Abra, or KO it 100% of the time. We switch to Marshtomp (setting up Pomeg glitch) and catch the Wingull, giving it a fancy nickname. This name will be the bootstrap code that will redirect the glitch animation to our custom code.
+
+!! Glitzer Popping
+Wingull needs to be placed in Box 12 and Marshtomp in Box 2. While we're in the PC, why not think of some fun names for the PC Boxes? Unfortunately the strict timing of the upcoming encounter means we only have time to nam 2 before leaving.
+
+Using the Pomeg Berry on Abra knocks it out, leaving us with a totally KOed party. When we enter a battle on a precise frame, the memory layout is such so that we can corrupt Marshtomp's PID and get our glitch move. The game gets confused and thinks we have zero pokémon, so it just sends out the pokémon in the 3rd slot, the last slot we used. Viewing Abra's summary refreshes the party count and lets us select more than 6 pokémon, and we scroll up once to corrupt the first possible address.
+
+Whiting out to exit the battle is an option, but just barely loses time compared to using the Fluffy Tail.
+
+!! ACE Setup
+Returning to the PC, we think of some more Box names while picking up and dropping the Egg that was Marshtomp. This refreshes its PP, which would otherwise be zero. The box names are THUMB assembly code that will allow us to input even more code using the buttons, one byte per frame. Finally, before ACE can be triggered, we re-enable animations so that the glitch animation will play. Some more furious running is needed to time an encounter with the right memory layout, but the end of the run is very near.
+
+A lot happens here very quickly. As soon as the glitch move's name finishes printing, execution jumps to code in the Box names and starts writing bytes based on the buttons that are pressed. We're free to input any payload and jump to it by pressing L, breaking the loop. There are, however, better and worse options for quickly beating the game from here.
+
+Since the TAS stops at final input guaranteed to complete the game, I wanted a payload that stopped as early as possible, and completed the game without question.
+
+Teleporting to the Hall of Fame map is doable, and triggers full game completion. However I'd still have to press A on the text boxes and the Hall of Fame screen itself, which adds additional time.
+
+Calling the Hall of Fame sequence itself works too. Doing that requires clearing the memory used by onscreen sprites, or the sequence will crash, but it's not a huge problem. However this doesn't set all game completion flags, it just put our save location in Littleroot. And I'd still have to press A on the "Congratulations" to trigger the end credits.
+
+We could also call the credits directly, but this completes exactly none of the game, it just rolls the credits.
+
+In the end I settled for something hackier than all 3 solutions. Instead of letting code execution return to the main loop of the game, I wrote my own main loop, that mimics the normal one but treats A as being pressed regardless of actual input. After that, all it takes is a hacky teleport into the map, and a return to this main loop to take away the controls. The final input is the final byte of code—everything after basically happens on autoplay. When the game resets after the credits, the custom code in RAM will be wiped, but the game is still completely beaten, and faster than ever before!
+
+!! Easter Egg
+All of this applies only to the movie I requested be used for encoding.
+
+Towards the end of the development of this TAS I felt that the ending needed some more flair. To me ACE is a lot more interesting if you do something with it beyond just a credits warp. Since no GBA emulator supports subframe inputs yet, I wasn't able to do anything graphically advanced like Mr. Wint's famous Pokémon Yellow TAS, since I can only input one byte per frame. With that aside though, there are still a lot of cool things we can do!
+
+Emerald has a section of save data commonly called the "ram script", about 1 kilobyte in size. This script was, I believe, occasionally used by event distributions for the games. It enables a custom script, complete with text and other events, to be placed into save data semi-permanently, to be activated by talking to any specific NPC.
+
+So with total control of the game, why not put something there as basically an Easter egg?
+
+I thought it would be fun if I put myself into the game, complete with customized text, maybe even a custom battle!
+
+It turns out that writing data into the ram script is pretty easy. There's a checksum needed, but we can just call the game's function to calculate it.
+
+One problem, though, is that since the script is in save data, it is randomly shifted in memory just like PC data. This would make embedding assembly code into the script and calling it difficult, if there weren't a way around it. Since save data can only be shifted by at most 128 bytes, all we need is a short stub at the start of the script to call our code, 128 bytes of zeroes, followed by the code we wanted to call. Then we have the stub jumped to a fix memory location that will either be our code, or a bunch of zeroes that do nothing until we eventually run into our code.
+
+Ok, so we can embed code in save data! What can we use it for?
+
+Well, firstly, we can use that code to copy the rest of the script to a fixed, unused memory location. This makes assembling the actual script easier since it knows its at a fixed location and the assembler can figure out addresses of things we want to reference, like blocks of text.
+
+Running embedded code is also needed to trigger the custom battle. Emerald wasn't designed to allow script-triggered battles with data in RAM. There are script commands for starting battles, but they only allow us to use data from the ROM which we can't modify. To start a battle with a custom trainer and pokémon, we have to hackily call a few functions, but it only takes a hundred assembly instructions or so.
+
+With all that figured out, I had a way to put myself, text, pokémon, and all, into the game, complete with a rare reward for winning the battle.
+
+Now for the battle itself.
+
+Battles in Emerald are very dependent on data being set at the right times. I had to input very little additional code to create the effects shown. I modified the input payload to let me write code to any address, or run code at any address, and I added some functions to call on demand to print text to the screen and change the RNG. Everything you see is the result of key variables being altered at precise times--strings are written into memory just before I print them, damage is modified right before its applied, move targets are changed, and an entire valid pokémon is written into RAM (The TAS Porygon2) just before I send it out. I think it's a fun demonstration of how deep knowledge of a game's inner workings can lead to things that would never be possible in normal play.
+
+!!! Special Thanks
+* FractalFusion, for suggestions on the forums and overall game knowledge
+* Pidgey from PRET, for helping with disassembling the JP ROM
+* Everyone else from [https://github.com/pret|pret]
+* GoddessMaria, for her Emerald TAS that helped me learn
+* Metarkai, for his documentation of the Pomeg glitch
+* endrift, for mGBA and fixing *two* bugs I found over the making of this TAS
+* Everyone in the Pokémon RTA Discord for their routing and spinner docs, and for letting me pester them with ACE strats
+
+!!! Possible Improvements
+* Very recently, I reverse-engineered a new ACE method used in a JP speedrunner's video, that works via sprite callbacks. It might be faster than getting a glitch move, but requires a complete redo of the run and so I want to submit what I
+have before adapting an entirely new strategy. The RTA runners are also going to try this strategy on English.
+* Going to Verdanturf early might save time compared to going after Flannery. It's hard to tell though—there are no good Wingull encounters for hundreds of frames before the one I use, so I'd just have to do more furious running that
+might not, in the end, save time.

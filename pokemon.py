@@ -25,6 +25,10 @@ class Substruct1(LittleEndianStructure):  # Attacks substructure
             d['pp%d' % i] = '%d' % self.pp[i]
         return d
 
+# SPE SPE ITM ITM EXP EXP EXP EXP PPB FRI
+# PKR MET ___ ___
+# HP  AT  DE  SP  SA  SD  COO BEA CUT SMA
+
 
 class Substruct2(LittleEndianStructure):  # EVs & Condition substructure
     _fields_ = [('hpEV', u8), ('attackEV', u8), ('defenseEV', u8), ('speedEV', u8),
@@ -209,6 +213,42 @@ def test_moves(mon):  # mon must be decrypted
     attacks.pp[0] = 10
     mon.checksum = mon.calc_checksum()
 
+def create_tas_mon():
+    mon = BoxMon()
+    for i, c in enumerate('TAS'):
+        mon.nickname[i] = name_map[c]
+    mon.nickname[i+1] = 0xFF
+    for i, c in enumerate('merrp'):
+        mon.otName[i] = name_map[c]
+    mon.otName[i+1] = 0xFF
+    mon.language = 0x02  # Japanese
+    mon.hasSpecies = 1
+    mon.decrypt()
+    growth = mon.sub(0).type0
+    growth.species = 233  # porygon2
+    growth.heldItem = 153  # Pomeg Berry
+    growth.experience = 1000000  # Level 100
+    growth.friendship = 255
+    attacks = mon.sub(1).type1
+    attacks.moves[0] = 144  # Transform
+    attacks.moves[1] = 118  # Metronome
+    attacks.moves[2] = 166  # Sketch
+    attacks.moves[3] = 354  # Psycho Boost
+    attacks.pp[0] = attacks.pp[1] = attacks.pp[2] = attacks.pp[3] = 25
+    evs = mon.sub(2).type2
+    evs.hpEV = 255
+    evs.spAttackEV = 255
+    misc = mon.sub(3).type3
+    misc.metLocation = 255  # Fatefaul encounter
+    misc.metLevel = 100
+    misc.metGame = 3  # Emerald
+    misc.pokeBall = 12
+    misc.otGender = 1  # Female
+    misc.unk = 0x3FFFFFFF  # All 31
+    mon.checksum = mon.calc_checksum()
+    mon.encrypt()
+    mon.export()
+
 
 def analyze_loop():
     while True:
@@ -218,10 +258,16 @@ def analyze_loop():
         data = bytearray.fromhex(hex_dump)
         mon = BoxMon.from_buffer(data)
         mon.decrypt()
+        growth = mon.sub(0).type0
+        # growth.species = 213
+        mon.checksum = mon.calc_checksum()
+        mon.encrypt()
+        #mon.personality |= 0x40000000
+        mon.decrypt()
         for i in range(4):
             foo = getattr(mon.sub(i), f'type{i}')
             print(foo.dump())
-        mon.encrypt()
+        #mon.encrypt()
         mon.export()
 
 

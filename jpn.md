@@ -41,16 +41,24 @@ glitch id: 0x3110 targets 02330000 (Box 12 slot 13-14)
 | gEventObjects | 02036FF0 |
 | Scott | 081db9f0 |
 | Common_Movement_ExclamationMark | 0824361b |
+| BattlePutTextOnWindow | 0814FA04 | Mislabeled!
+| gActiveBattler | 02023D08 |
+| gBattleBufferA | 02022D08 |
+| gCurrentMove | 02023E8E |
+| gBattlerTarget | 02023EB0 |
+| gBattleMons | 02023D28 | 0x58 large, 0xC is moves
+| ZeroMonData: | 08067670 |
 
-## Pomeg Glitch
+## Glitzer Popping
 - Target: 0202A52C (-100 each time)
+- 1st corruption at 0202a574
 
 ## Trash bytes
 - Set at 0806789A
 - target byte: 03007cef
 - Can be manipulated by opening and closing the menu (lol)
 
-## Mudkip generation
+## Mudkip
 - ~6018 cycles from ID generation
 - 3c/2f after A press
 - +25 frames
@@ -72,8 +80,7 @@ glitch id: 0x3110 targets 02330000 (Box 12 slot 13-14)
   - Generated via method 1
 2. StartWallyTutorialBattle (just after message)
    1. CreateMaleMon (loops otId & personality until it's male)
-      1. CreateMon
-        fixed personality, generates IV
+      1. CreateMon fixed personality, generates IV
 
 ## Aqua Grunt
 - !Tackle, !Tackle, !Tackle
@@ -162,7 +169,8 @@ glitch id: 0x3110 targets 02330000 (Box 12 slot 13-14)
 - Tackle: 32 Water Gun: 17 Mud Shot: 4
 
 ## Verdanturf
-- Pick up 2 Fluffy tails, some Pokeballs and X Special?
+- Fluffy Tail, 2-3 X-Special, Super Potion
+- HP Up 1
 
 ## Magma Grunts
 - Mud Shot, Tackle!
@@ -180,6 +188,7 @@ glitch id: 0x3110 targets 02330000 (Box 12 slot 13-14)
 - Water Gun x 3
 - +3 AT, +1 SA, +1 SP
 - (2, 16, 7, 11, 0, 19)
+- Take a Bite from Mightyena to have 10 health at level 25
 - Tackle: 30 Water Gun: 10 Mud Shot: 3
 
 ## Flannery
@@ -213,19 +222,19 @@ glitch id: 0x3110 targets 02330000 (Box 12 slot 13-14)
 - (5, 19, 9, 16, 0, 25)
 - Tackle: 28 Water Gun: 0 Mud Shot: 0
 
-## Teach Surf
-
-## Elixir & HP Up 2
-- HP Up: Route 111
+## Mauville City Redux
+- HP Up 2 Route 111
+- Head east to Route 119
 
 ## Rose & Deandre
 - +1 HP, +1 DE, +2 SA, +2 SP
 - (6, 19, 10, 18, 0, 27)
 - Abra: 1 HP EVs
 
-## Berry Master
-- 1 Pomeg & 1 Tamato
-- Reorder: Pokemon Abra Marshtomp
+## Route 123
+- Pomeg berries in left patch
+- Last chance to use spinner to advance RNG
+- Reorder: Any Abra Marshtomp
 
 ## Route 105/Protein 3
 - Use all vitamins
@@ -233,13 +242,14 @@ glitch id: 0x3110 targets 02330000 (Box 12 slot 13-14)
 - catch and nickname
 - 1F 09 18 03 02 FF (Box 1 name; THUMB) (まけねうい)
 
-## Expected EVs
+## EV Target
 - Note that move1 is ORed with 0x4000
 AT-HP SP-DE SD-SA
 3110 1b0a 0012
 - (16, 49, 10, 18, 0, 27)
 
-## Deposit
+## PC Visit
+- Name Box 1-2
 - Wingull: Box 12 Slot 14
 - Marshtomp: Box 2 Slot 24
 
@@ -248,9 +258,10 @@ AT-HP SP-DE SD-SA
 - Corrupt PID at: 0202a574
 
 ## ACE Prep
-- Lift egg, place in party
+- Lift & replace Egg, place in party
 - Name Boxes 1-5
 - Enable animations!
+- Align bootstrap at 02330000
 
 ## Move ACE
 1. Glitch move `0x3110` targets 02330000 (Box 12 slot 14).
@@ -262,18 +273,46 @@ AT-HP SP-DE SD-SA
 
 ## TODO
 - Faster alignment
-- TAS alternate route
-- Defer box naming
-- Fix bump in Poke Center
+- TAS alternate route (in progress)
+- Code improvements
+- Petalburg pathing & Ralts fight - Done
+- Get berries from patch instead of master - Done
 
-## Initial registers
+## Box Name Input
+- Bootstrap: 1F 09 18 03 02 FF (Box 1 name; THUMB) (まけねうい)
+- Short prelude to overwrite instructions
+- PokemonStorage+0x8344
+- When bootstrap is at 02330000, start at 02031808
 r0: 0 r1: 080a5113 r2: ffffffff r3: 03005b88
 r4: 020382bc r6: jump address
 r8: 0
-
-## Using box names
-- PokemonStorage+0x8344
-- When bootstrap is at 02330000, start at 02031808
+1. Setup key input
+2. Write lower 8 bits
+3. Loop unless L&R pressed
+```
+Box1: @ 02 4D 34 1D 05 DF 04 E0 (いぷゃへおkえl)
+LDR r5,[pc,#8]  4D02 @ r5=REG_KEY_INPUT
+ADD r4,r6,#4    1D34 @ r4=start of loop (SWI)
+SWI #5          DF05
+B Box3          E004
+Box2: @ xx xx xx 30 01 00 04 (ぃぃぃぃあ え)
+.space 3
+.4byte 0x04000130 @ REG_KEYINPUT
+Box3: @ 29 68 71 77 01 4B 04 E0 (るネムラ ゥぽ えl)
+LDR r1,[r5]     6829 @ r1=keys
+STRB r1,[r6]    7031 @ write keys
+LDR r3,[pc,#4]  4B01 @ r3=0x300
+B Box5          E004
+Box4: @ xx 00 03 (  う)
+.space 1
+.2byte 0x300
+Box5: @ 01 36 19 42 00 D0 20 47 (あょのぢ Vみび)
+ADD r6,#1       3601
+TST r1,r3       4219 @ Z=L&R
+BEQ target      D000
+BX r4           4720 @ loop to SWI
+target:
+```
 
 ## Credits Warp (ARM)
 1. set task func to SetCallback2AfterHallOfFameDisplay
@@ -328,33 +367,69 @@ STREQ r0,[r0]         04000130 # REG_KEYINPUT
 LDRNET r0,[pc-0x148]  143F0148 # pseudo-BNE
 ```
 
-## Box name bootstrap
-- Bootstrap: 1F 09 18 03 02 FF (Box 1 name; THUMB) (まけねうい)
-- Short prelude to overwrite instructions
-1. Setup key input
-2. Write lower 8 bits
-3. Loop unless L&R pressed
+## JPN Sprite ACE
+- Ralts must be level 4
+- Give Exp. Share to DOTS
+- 24 28 (5) 28 22 (6) 22 22 (7) (Growth) 22 10 10 16 10 10 (8) (320 total EXP)
+- Marill Poochyena (5) Poochyena Poochyena (6) Wurmple Wurmple (7) Poochyena Poochyena Poochyena Wurmple Poochyena Poochyena
+- Marill: 2 HP, Poochyena x8: 8 AT, Wurmple x3: 3 HP
+- Take Exp. Share from DOTS
+- Use 9 HP Ups on DOTS
+- HP: 95 AT: 8
+- CreatedHatchedMon -> CreateMon -> CreateBoxMon 0x080677A0 -> GetSpeciesName, GiveBoxMonInitialMoveset (0x08068DB0)
+- 08068E36 (possible hang in GiveBoxMonInitialMoveset)
+- 080066FC (call_via_r1)l
+- 0206fffe+1 (jump target)
+- 0817F398 callback read
+- 0806E85A (tAnimId selection)
+- tAnimId = byte at sMonFrontAnimIdsTable[species - 1] = 082FA374[species - 1]
+- 0817F398 callback set
+  - target = sMonAnimFunctions[tAnimId] = 085D34E8[4*tAnimId]
+  - target = 085D34E8[4*082FA374[species - 1]] & 0703FFFF
+- gLevelUpLearnsets[4*species][i] -- Note that this reads from invalid addresses
 ```
-Box1: @ 02 4D 34 1D 05 DF 04 E0 (いぷゃへおkえl)
-LDR r5,[pc,#8]  4D02 @ r5=REG_KEY_INPUT
-ADD r4,r6,#4    1D34 @ r4=start of loop (SWI)
-SWI #5          DF05
-B Box3          E004
-Box2: @ xx xx xx 30 01 00 04 (ぃぃぃぃあ え)
-.space 3
-.4byte 0x04000130 @ REG_KEYINPUT
-Box3: @ 29 68 71 77 01 4B 04 E0 (るネムラ ゥぽ えl)
-LDR r1,[r5]     6829 @ r1=keys
-STRB r1,[r6]    7031 @ write keys
-LDR r3,[pc,#4]  4B01 @ r3=0x300
-B Box5          E004
-Box4: @ xx 00 00 (  う)
-.space 1
-.2byte 0x300
-Box5: @ 01 36 19 42 00 D0 20 47 (あょのぢ Vみび)
-ADD r6,#1       3601
-TST r1,r3       4219 @ Z=L&R
-BEQ target      D000
-BX r4           4720 @ loop to SWI
-target:
+Box1: @ 00 48 00 47 3D 55 17 08 ( ぶ びじオぬく)
+LDR r0, [pc]
+BX r0 @ Call 0817553D (Credits CB2, used in SetCallback2AfterHallOfFameDisplay)
+.4byte 0817553D
 ```
+- Place DOTS in Box 2 Slot 24
+
+```
+Species Address   EVs
+03CE =  0202FFFF (206 HP 003 AT) Y
+03FE =  0202FFFF (254 HP 003 AT) X
+059D =  0202FEFE (157 HP 005 AT)
+0615 =  0202FEFE (021 HP 006 AT) x
+079D =  0202FEFE (157 HP 007 AT)
+085F =  0202FFFF (095 HP 008 AT) Y -- Used in the video
+08BB =  0202FFFF (187 HP 008 AT) Y
+0A3F =  0202FEFE (063 HP 010 AT) x
+0A62 =  0202FEFE (098 HP 010 AT)
+0A90 =  0202FFFF (144 HP 010 AT) Y
+0B5D =  0202FEFE (093 HP 011 AT)
+672D =  0202FFFF (045 HP 103 AT) X
+6789 =  0202FEFE (137 HP 103 AT)
+69D7 =  0202FFFF (215 HP 105 AT) Y
+BC35 =  0202FFFF (053 HP 188 AT) X
+C185 =  0202FFFF (133 HP 193 AT)
+C195 =  0202FFFF (149 HP 193 AT)
+CC1F =  0202FEFE (031 HP 204 AT)
+CC26 =  0202FEFE (038 HP 204 AT)
+```
+
+## Back Sprite ACE
+- GetSpeciesBackAnimSet: 0817F320
+- LaunchAnimationTaskForBackSprite: 0817F440
+- after GetNature: 0817F47C
+- store tAnimId at 0817F496
+- read tAnimId at 0817F3A0 (Task_HandleMonAnimation)
+- backAnimSet = sSpeciesToBackAnimSet[species] - 1 (only if not equal to zero)
+- animId = 3 * backAnimSet + sBackAnimNatureModTable[nature]
+- tAnimId = data[3] = sBackAnimationIds[animId]
+- target = sMonAnimFunctions[tAnimId]
+
+- u8 backAnimSet = 085D3328[species] - 1
+- u8 animId = 3 * backAnimSet + 085D378F[nature]
+- u8 tAnimId = 085D3744[animId]
+- u32 target = 085D34E8[4*tAnimId]

@@ -1,5 +1,5 @@
 -- HUD for Pokemon Emerald (J)
-final_inp = 400000 -- final input frame
+final_inp = 6000000 -- final input frame
 
 function showState()
   gui.cleartext()
@@ -12,10 +12,11 @@ function showState()
   minutes = minutes % 60
   gui.text(0, 0, string.format("%06d %02d:%02d:%02d", frame, hours, minutes, seconds))
   if frame >= final_inp then return end
-  rng = memory.read_u32_le(0x005ae0, "IWRAM")
-  cycles = memory.read_u32_le(0x024664, "EWRAM")
+  rng = memory.read_u32_le(0x05D80, "IWRAM")
+  cycles = memory.read_u32_le(0x0249c0, "EWRAM")
   gui.text(0, 14, string.format("%06d %08X", cycles, rng))
   inBattle = memory.readbyte(0x002799, "IWRAM")
+  inBattle = 0
   if (inBattle == 2) then -- battle display
     hp = memory.read_u16_le(0x023DA8, "EWRAM")
     if hp ~= 0 then gui.text(0, 14*4+4, string.format("%d", hp), 0xff5ad684) end
@@ -38,20 +39,23 @@ function showState()
     else -- Miss
       gui.text(0, 14*8, "Miss", 0xffde6b5a)
     end
-    addr = memory.read_u32_le(0x007918, "IWRAM")
+    addr = memory.read_u32_le(0x007914, "IWRAM")
     gui.text(0, 14*2, string.format("Addr: %08X", addr))
-    -- battler = memory.readbyte(0x023d08)
-    -- buffer = 0x02022D08+0x200*battler
-    -- battleMons = 0x02023d28+0x58*battler
-    -- move = memory.read_u16_le(0x023E8E, "EWRAM")
-    -- gui.text(0, 14*3, string.format("%08x %08x %04x", buffer, battleMons, move))
   else -- overworld display
-    foePID = memory.read_u32_le(0x0243E8, "EWRAM")
+    foePID = memory.read_u32_le(0x024744, "EWRAM")
     gui.text(0, 28, string.format("Foe: %08X", foePID))
-    tile = memory.readbyte(0x037233, "EWRAM")
+    tile = memory.readbyte(0x037593, "EWRAM")
     gui.text(0, 14*3, string.format("Tile: %d", tile))
-    addr = memory.read_u32_le(0x007918, "IWRAM")
-    gui.text(0, 14*4, string.format("Addr: %08X", addr))
+    turn = memory.read_u16_le(0x024330, "EWRAM")
+    if turn < 0x3333 then -- quick claw activates
+      gui.text(0, 14*6, string.format("Turn: %04X", turn), 0xff5ad684)
+    else
+      gui.text(0, 14*6, string.format("Turn: %04X", turn))
+    end
+    -- mudkipPID = memory.read_u32_le(0x0244ec, "EWRAM")
+    -- gui.text(0, 14*4, string.format("Mudkip: %08X", mudkipPID))
+    -- addr = memory.read_u32_le(0x007914, "IWRAM")
+    -- gui.text(0, 14*4, string.format("Addr: %08X", addr))
   end
 end
 event.onframeend(showState)
