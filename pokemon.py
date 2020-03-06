@@ -154,6 +154,48 @@ class BoxMon(LittleEndianStructure):
         else:
             print('Legal')
 
+    @classmethod
+    def from_pk3(self, buffer: bytearray):
+        # Reorder substructures
+        substructs = [buffer[32+i*12:32+12+i*12] for i in range(4)]
+        pid = int.from_bytes(buffer[:4], 'little')
+        order = perms[pid % 24]
+        for n, pos in enumerate(order):  # n is substruct number, position is its position
+            buffer[32+pos*12:32+12+pos*12] = substructs[n][:]
+        return BoxMon.from_buffer(buffer)
+
+    def to_pk3(self):  # Convert to .pk3
+        buffer = bytearray(bytes(self))
+        assert len(buffer) == 80
+        substructs = [None for _ in range(4)]
+        pid = int.from_bytes(buffer[:4], 'little')
+        order = perms[pid % 24]
+        substructs = [buffer[32+pos*12:32+12+pos*12] for pos in order]
+        subs = b''.join(substructs)
+        assert len(subs) == 80-32
+        buffer[32:] = subs
+        return buffer
+
+
+def load_pk3(path: str):  # Load a PKHeX .pk3 pokemon
+    """ Load a .pk3 pokemon (as saved by PKHeX) into a BoxMon.
+
+    Note that the resulting pokemon is usually but not always decrypted.
+
+    Args:
+        path (str): Path to the .pk3 file.
+
+    Returns:
+        BoxMon: The canonicalized pokemon structure.
+    """
+    with open(path, 'rb') as f:
+        buffer = f.read(80)
+    if len(buffer) != 80:
+        raise Exception('80 bytes required!')
+    buffer = bytearray(buffer)
+    return BoxMon.from_pk3(buffer)
+
+
 
 # Maps personalities to substruct order lists l
 # 0 1 2 3
@@ -250,6 +292,22 @@ def create_tas_mon():
     mon.export()
 
 
+def test_abra(mon, otId=0):
+    mon.decrypt()
+    mon.otId = otId
+    evs = mon.sub(2).type2
+    evs.hpEV = 17
+    evs.attackEV = 6
+    mon.checksum = mon.calc_checksum()
+    mon.encrypt()
+    mon.personality |= 0x40000000
+    mon.decrypt()
+    check = mon.calc_checksum()
+    growth = mon.sub(0).type0
+    # print(f'{mon.personality:08X}-{mon.otId:08X} {mon.checksum} {check} {growth.species:04X}')
+    return mon.checksum == check and growth.species == 0x611
+
+
 def analyze_loop():
     while True:
         hex_dump = input()
@@ -272,4 +330,11 @@ def analyze_loop():
 
 
 if __name__ == '__main__':
+    mon = bytes.fromhex('04D89DA0A28E2EDDA9A6A6FFFFFFFFFFFFFF0202C7D9E6E6E4FFFF0016DD0000B750B37DA656B37DA656B37D9956B37D4A56B37DA610B37DC256B37DA656B37DB256B37DA64934DC6B9EBD7BA656B37D')
+    for tid in range(2**32):
+        if not test_abra(BoxMon.from_buffer(bytearray(mon)), tid):
+            print(f'{tid:08X}')
+        elif tid % 100000 == 0:
+            print(f'i {tid:08X}')
+    quit()
     analyze_loop()

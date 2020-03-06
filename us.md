@@ -81,6 +81,7 @@ r0: 02020784   r1: addr   r2: 00000010   r3: 00000000
 r4: 02020784   r5: 020207C2   r6: 00000005   r7: 00000001
 r8: 00000000   r9: 00000000  r10: 00000000  r11: 00000000
 r12: 00000040  r13: 03007EDC  r14: 080069E7  r15: 02070004
+cpsr: [-------]
 - Preserve r2-r7
 - call 08175620
 - gSaveBlock1Ptr: 03005d8c
@@ -140,6 +141,71 @@ BIC r11,r12,0xe1>>4 E3CCB2E1 @ r11=BX r0
 STR r11,[r1+0xBEC]  E5A1BFAC @ write BX r0 to Box 13 Slot 29 OT
 B+11                EA0000D9
 BIC r0,lr
+```
+
+### Box Names
+```
+box_01: (mFloyLRo)
+MVN r12,0xe1        E3E0C0E1 @ r12=ffffff1e
+BIC r12,0xed>>12    E3CCC6ED @ r12=f12fff1e
+box_02: ( ?”m”Ro )
+                    B2AC00FF
+BIC r11,r12,0xe1>>4 E3CCB2E1 @ r11=BX r0
+box_03: (?”LT-n  )
+                    B2ACFF00
+ADC r12,lr,C60      E2AECEC6 @ r12=08007647
+box_04: (EYN?n   )
+                    BFFF0000
+ADC r12,D30000      E2ACC8D3 @ r12=8D37647
+                    FF000000
+box_05: (FNRoz ?n)
+BIC r12,C00000      E3CCC8C0 @ r12=8137647
+ADC r0,r12,EE       E2AC00EE @ r0=GameClear
+box_06: ( ?”UF_m )
+                    B2AC00FF
+MOV r12,pc>>1       E1B0C0CF @r12=(this address+8)>>1
+box_07: (?”lHBn  ) @ lowercase L
+                    B2ACFF00
+ADC r12,r12,0xE     E2BCC2E0 +8
+box_08: (ExU_m   )
+                    BFFF0000 +C
+MOV r12,r12<<1      E1B0CFEC @ r12=target
+                    FF000000 +14
+box_09: ( _?q  ?”)
+STR r11,[r12]       E5ACB000 +18
+                    B2AC0000 +1C
+box_10: ( ?”)
+                    B2AC00FF +20
+                    B2AC0000 +24 (target)
+```
+
+```
+box_01:
+                    xxxxxxxx
+                    xxxxxxxx
+box_02:
+                    xxxxxxff
+                    xxxxxxxx
+box_03:
+                    yyyyffxx
+                    yyyyyyyy
+box_04:
+                    zzffyyyy
+                    zzzzzzzz
+                    ffzzzzzz
+box_05:
+                    xxxxxxxx
+                    xxxxxxxx
+box_06:
+                    xxxxxxff
+                    xxxxxxxx
+box_07:
+                    yyyyffxx
+                    yyyyyyyy
+box_08:
+                    zzffyyyy
+                    zzzzzzzz
+                    ffzzzzzz
 ```
 
 ```

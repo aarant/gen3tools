@@ -11,7 +11,18 @@ char_to_byte = {'あ': 0x01, 'い': 0x02, 'え': 0x04, '6': 0xA7,
                 '.': 0xB8, '?': 0xAC, ' ': 0x00, '!': 0xAB, '^': 0xFA, ',': 0xB4, '\'': 0xB3, chr(0xfc): 0xFC,
                 'さ': 0x0B}
 
+byte_to_char = {v: k for k, v in char_to_byte.items()}
+
 string_re = re.compile(r'\.string\s+([\'"].*[\'"])')
+
+
+def decode_str(b: bytes):
+    chars = []
+    for x in b:
+        if x == 0xFF:
+            break
+        chars.append(byte_to_char.get(x, '☐'))
+    return ''.join(chars)
 
 
 def convert_match(m):

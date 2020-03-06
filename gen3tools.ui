@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>511</width>
-    <height>645</height>
+    <width>508</width>
+    <height>664</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -26,7 +26,7 @@
       <property name="documentMode">
        <bool>true</bool>
       </property>
-      <widget class="QWidget" name="tab">
+      <widget class="QWidget" name="rngTab">
        <attribute name="title">
         <string>RNG</string>
        </attribute>
@@ -55,14 +55,17 @@
                   <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
+                <property name="toolTip">
+                 <string>Starting 32-bit RNG seed</string>
+                </property>
                 <property name="inputMask">
-                 <string extracomment="0">hhhhhhhh</string>
+                 <string notr="true" extracomment="0">hhhhhhhh</string>
                 </property>
                 <property name="text">
                  <string/>
                 </property>
                 <property name="cursorPosition">
-                 <number>8</number>
+                 <number>0</number>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignJustify|Qt::AlignVCenter</set>
@@ -81,6 +84,18 @@
               </item>
               <item row="1" column="1">
                <widget class="QSpinBox" name="cycle">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="toolTip">
+                 <string>Cycle number of this seed</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                </property>
                 <property name="buttonSymbols">
                  <enum>QAbstractSpinBox::PlusMinus</enum>
                 </property>
@@ -107,6 +122,18 @@
               </item>
               <item row="2" column="1">
                <widget class="QSpinBox" name="limit">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="toolTip">
+                 <string>Maximum number of seeds to search</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+                </property>
                 <property name="buttonSymbols">
                  <enum>QAbstractSpinBox::UpDownArrows</enum>
                 </property>
@@ -142,6 +169,9 @@
               <number>1</number>
              </property>
              <widget class="QWidget" name="acc_tab">
+              <property name="toolTip">
+               <string>Determine whether a move will hit</string>
+              </property>
               <property name="step_cycles" stdset="0">
                <UInt>2</UInt>
               </property>
@@ -151,6 +181,9 @@
               <layout class="QGridLayout" name="gridLayout_6">
                <item row="1" column="1">
                 <widget class="QSpinBox" name="acc_stage">
+                 <property name="toolTip">
+                  <string>Accuracy stage of user</string>
+                 </property>
                  <property name="keyboardTracking">
                   <bool>false</bool>
                  </property>
@@ -184,6 +217,9 @@
                </item>
                <item row="1" column="3">
                 <widget class="QSpinBox" name="evade">
+                 <property name="toolTip">
+                  <string>Evasion stage of target</string>
+                 </property>
                  <property name="keyboardTracking">
                   <bool>false</bool>
                  </property>
@@ -207,6 +243,9 @@
                </item>
                <item row="0" column="1">
                 <widget class="QSpinBox" name="move_acc">
+                 <property name="toolTip">
+                  <string>% accuracy of the move used</string>
+                 </property>
                  <property name="buttonSymbols">
                   <enum>QAbstractSpinBox::PlusMinus</enum>
                  </property>
@@ -226,6 +265,9 @@
                </item>
                <item row="0" column="2">
                 <widget class="QCheckBox" name="hit">
+                 <property name="toolTip">
+                  <string>Display both hits &amp; misses, hits, or misses</string>
+                 </property>
                  <property name="text">
                   <string>Hit</string>
                  </property>
@@ -240,6 +282,9 @@
               </layout>
              </widget>
              <widget class="QWidget" name="crit_tab">
+              <property name="toolTip">
+               <string>Calculate critical hit &amp; damage ranges</string>
+              </property>
               <property name="step_cycles" stdset="0">
                <UInt>2</UInt>
               </property>
@@ -259,6 +304,9 @@
                </item>
                <item row="1" column="1">
                 <widget class="QSpinBox" name="min_dmg">
+                 <property name="toolTip">
+                  <string>Minimum damage scaling to display</string>
+                 </property>
                  <property name="buttonSymbols">
                   <enum>QAbstractSpinBox::PlusMinus</enum>
                  </property>
@@ -275,6 +323,9 @@
                </item>
                <item row="0" column="1">
                 <widget class="QSpinBox" name="chance">
+                 <property name="toolTip">
+                  <string>Critical chance stage</string>
+                 </property>
                  <property name="keyboardTracking">
                   <bool>false</bool>
                  </property>
@@ -285,6 +336,9 @@
                </item>
                <item row="0" column="2">
                 <widget class="QCheckBox" name="crit">
+                 <property name="toolTip">
+                  <string>Show both crits and non-crits, only crits, or only non-crits</string>
+                 </property>
                  <property name="text">
                   <string>Crit</string>
                  </property>
@@ -332,6 +386,9 @@
               </layout>
              </widget>
              <widget class="QWidget" name="wild_tab">
+              <property name="toolTip">
+               <string>Predict wild encounters</string>
+              </property>
               <property name="step_cycles" stdset="0">
                <UInt>1</UInt>
               </property>
@@ -341,6 +398,9 @@
               <layout class="QGridLayout" name="gridLayout_8">
                <item row="0" column="1">
                 <widget class="QLineEdit" name="slots">
+                 <property name="toolTip">
+                  <string>Encounter slots to show</string>
+                 </property>
                  <property name="placeholderText">
                   <string>0,1,2,3,4,5,6,7,8,9,10,11</string>
                  </property>
@@ -365,6 +425,9 @@
                </item>
                <item row="1" column="1">
                 <widget class="QSpinBox" name="rate">
+                 <property name="toolTip">
+                  <string>Encounter rate of area</string>
+                 </property>
                  <property name="maximum">
                   <number>30</number>
                  </property>
@@ -375,6 +438,9 @@
                </item>
                <item row="0" column="2">
                 <widget class="QCheckBox" name="diff">
+                 <property name="toolTip">
+                  <string>Check if stepping into an encounter tile from a non-encounter tile</string>
+                 </property>
                  <property name="text">
                   <string>Diff</string>
                  </property>
@@ -382,6 +448,9 @@
                </item>
                <item row="1" column="2">
                 <widget class="QCheckBox" name="bike">
+                 <property name="toolTip">
+                  <string>Check if the bike is being ridden</string>
+                 </property>
                  <property name="text">
                   <string>Bike</string>
                  </property>
@@ -461,7 +530,7 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab_4">
+      <widget class="QWidget" name="pokemonTab">
        <attribute name="title">
         <string>Pokemon</string>
        </attribute>
@@ -474,16 +543,20 @@
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
-          <layout class="QFormLayout" name="formLayout_2">
-           <item row="0" column="0">
+          <layout class="QHBoxLayout" name="horizontalLayout_3">
+           <item>
             <widget class="QLabel" name="label_3">
              <property name="text">
               <string>Raw:</string>
              </property>
             </widget>
            </item>
-           <item row="0" column="1">
-            <widget class="QLineEdit" name="raw"/>
+           <item>
+            <widget class="QLineEdit" name="raw">
+             <property name="inputMask">
+              <string notr="true"/>
+             </property>
+            </widget>
            </item>
           </layout>
          </widget>
@@ -504,24 +577,46 @@
            </sizepolicy>
           </property>
           <layout class="QGridLayout" name="gridLayout">
-           <item row="1" column="0">
-            <widget class="QLabel" name="label_6">
-             <property name="text">
-              <string>Nickname:</string>
+           <item row="0" column="4">
+            <widget class="QLineEdit" name="otId">
+             <property name="inputMask">
+              <string notr="true">hhhhhhhh</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
              </property>
             </widget>
            </item>
-           <item row="4" column="1">
-            <widget class="QCheckBox" name="hasSpecies">
-             <property name="text">
-              <string>Owned</string>
+           <item row="1" column="1" colspan="2">
+            <widget class="QLineEdit" name="nickname">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <property name="inputMask">
+              <string notr="true"/>
+             </property>
+             <property name="maxLength">
+              <number>10</number>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
              </property>
             </widget>
            </item>
-           <item row="0" column="0">
-            <widget class="QLabel" name="label_4">
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_7">
              <property name="text">
-              <string>PID:</string>
+              <string>Language:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="3">
+            <widget class="QLabel" name="label_5">
+             <property name="text">
+              <string>OTID:</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
              </property>
             </widget>
            </item>
@@ -532,16 +627,20 @@
              </property>
             </widget>
            </item>
-           <item row="0" column="4">
-            <widget class="QLineEdit" name="otId"/>
+           <item row="4" column="1">
+            <widget class="QCheckBox" name="hasSpecies">
+             <property name="text">
+              <string>Owned</string>
+             </property>
+            </widget>
            </item>
            <item row="0" column="1" colspan="2">
-            <widget class="QLineEdit" name="pid"/>
-           </item>
-           <item row="2" column="0">
-            <widget class="QLabel" name="label_7">
-             <property name="text">
-              <string>Language:</string>
+            <widget class="QLineEdit" name="pid">
+             <property name="inputMask">
+              <string notr="true">hhhhhhhh</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
              </property>
             </widget>
            </item>
@@ -551,17 +650,6 @@
               <string>Bad Egg</string>
              </property>
             </widget>
-           </item>
-           <item row="5" column="0" colspan="3">
-            <widget class="QWidget" name="widget_5" native="true">
-             <layout class="QHBoxLayout" name="horizontalLayout_2"/>
-            </widget>
-           </item>
-           <item row="1" column="1" colspan="2">
-            <widget class="QLineEdit" name="nickname"/>
-           </item>
-           <item row="1" column="4">
-            <widget class="QLineEdit" name="otName"/>
            </item>
            <item row="1" column="3">
             <widget class="QLabel" name="label_9">
@@ -586,17 +674,16 @@
              </property>
             </widget>
            </item>
-           <item row="4" column="4">
-            <widget class="QPushButton" name="pushButton">
-             <property name="text">
-              <string>Make Legal</string>
+           <item row="1" column="4">
+            <widget class="QLineEdit" name="otName">
+             <property name="enabled">
+              <bool>false</bool>
              </property>
-            </widget>
-           </item>
-           <item row="0" column="3">
-            <widget class="QLabel" name="label_5">
-             <property name="text">
-              <string>OTID:</string>
+             <property name="inputMask">
+              <string notr="true"/>
+             </property>
+             <property name="maxLength">
+              <number>10</number>
              </property>
              <property name="alignment">
               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -610,10 +697,54 @@
              </property>
             </widget>
            </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_4">
+             <property name="text">
+              <string>PID:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0" colspan="3">
+            <widget class="QWidget" name="widget_5" native="true">
+             <layout class="QHBoxLayout" name="horizontalLayout_2"/>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_6">
+             <property name="text">
+              <string>Nickname:</string>
+             </property>
+            </widget>
+           </item>
            <item row="2" column="4">
-            <widget class="QLineEdit" name="checksum">
-             <property name="inputMask">
-              <string>hhhh</string>
+            <widget class="QSpinBox" name="checksum">
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+             </property>
+             <property name="maximum">
+              <number>65535</number>
+             </property>
+             <property name="displayIntegerBase">
+              <number>16</number>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="4">
+            <widget class="QToolButton" name="toolButton">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Tools</string>
+             </property>
+             <property name="popupMode">
+              <enum>QToolButton::InstantPopup</enum>
+             </property>
+             <property name="toolButtonStyle">
+              <enum>Qt::ToolButtonTextOnly</enum>
              </property>
             </widget>
            </item>
@@ -637,17 +768,29 @@
               </property>
              </widget>
             </item>
+            <item row="0" column="1">
+             <widget class="QSpinBox" name="species">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+              <property name="accelerated">
+               <bool>true</bool>
+              </property>
+              <property name="maximum">
+               <number>65535</number>
+              </property>
+             </widget>
+            </item>
             <item row="1" column="0">
              <widget class="QLabel" name="label_11">
               <property name="text">
                <string>Held Item:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="0">
-             <widget class="QLabel" name="label_12">
-              <property name="text">
-               <string>Experience:</string>
               </property>
              </widget>
             </item>
@@ -670,10 +813,23 @@
               </property>
              </widget>
             </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="label_12">
+              <property name="text">
+               <string>Experience:</string>
+              </property>
+             </widget>
+            </item>
             <item row="2" column="1">
              <widget class="QLineEdit" name="experience">
+              <property name="inputMask">
+               <string notr="true"/>
+              </property>
               <property name="text">
                <string/>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
               </property>
              </widget>
             </item>
@@ -681,13 +837,6 @@
              <widget class="QLabel" name="label_13">
               <property name="text">
                <string>PP Bonus:</string>
-              </property>
-             </widget>
-            </item>
-            <item row="4" column="0">
-             <widget class="QLabel" name="label_22">
-              <property name="text">
-               <string>Friendship:</string>
               </property>
              </widget>
             </item>
@@ -710,6 +859,13 @@
               </property>
              </widget>
             </item>
+            <item row="4" column="0">
+             <widget class="QLabel" name="label_22">
+              <property name="text">
+               <string>Friendship:</string>
+              </property>
+             </widget>
+            </item>
             <item row="4" column="1">
              <widget class="QSpinBox" name="friendship">
               <property name="sizePolicy">
@@ -726,25 +882,6 @@
               </property>
               <property name="maximum">
                <number>255</number>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="QSpinBox" name="species">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-              </property>
-              <property name="accelerated">
-               <bool>true</bool>
-              </property>
-              <property name="maximum">
-               <number>65535</number>
               </property>
              </widget>
             </item>
@@ -808,9 +945,6 @@
                  <property name="maximum">
                   <number>65535</number>
                  </property>
-                 <property name="displayIntegerBase">
-                  <number>16</number>
-                 </property>
                 </widget>
                </item>
                <item row="1" column="0">
@@ -836,9 +970,6 @@
                  </property>
                  <property name="maximum">
                   <number>65535</number>
-                 </property>
-                 <property name="displayIntegerBase">
-                  <number>16</number>
                  </property>
                 </widget>
                </item>
@@ -872,9 +1003,6 @@
                  </property>
                  <property name="maximum">
                   <number>65535</number>
-                 </property>
-                 <property name="displayIntegerBase">
-                  <number>16</number>
                  </property>
                 </widget>
                </item>
@@ -927,9 +1055,6 @@
                  </property>
                  <property name="maximum">
                   <number>65535</number>
-                 </property>
-                 <property name="displayIntegerBase">
-                  <number>16</number>
                  </property>
                 </widget>
                </item>
@@ -1344,6 +1469,9 @@
                </item>
                <item row="0" column="3">
                 <widget class="QSpinBox" name="hpIV">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
                  <property name="alignment">
                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                  </property>
@@ -1364,6 +1492,9 @@
                </item>
                <item row="3" column="3">
                 <widget class="QSpinBox" name="spAttackIV">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
                  <property name="alignment">
                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                  </property>
@@ -1390,6 +1521,9 @@
                </item>
                <item row="2" column="3">
                 <widget class="QSpinBox" name="defenseIV">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
                  <property name="alignment">
                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                  </property>
@@ -1410,6 +1544,9 @@
                </item>
                <item row="4" column="3">
                 <widget class="QSpinBox" name="spDefenseIV">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
                  <property name="alignment">
                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                  </property>
@@ -1423,6 +1560,9 @@
                </item>
                <item row="1" column="3">
                 <widget class="QSpinBox" name="attackIV">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
                  <property name="alignment">
                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                  </property>
@@ -1476,6 +1616,9 @@
                </item>
                <item row="5" column="3">
                 <widget class="QSpinBox" name="speedIV">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
                  <property name="alignment">
                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                  </property>
@@ -1561,10 +1704,16 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>511</width>
+     <width>508</width>
      <height>29</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+   </widget>
+   <addaction name="menuFile"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
