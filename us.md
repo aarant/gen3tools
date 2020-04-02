@@ -35,7 +35,62 @@
 | GetRamScript | 08099188 |
 | Box Names | 02031B70 |
 | GiveBoxMonInitialMoveset | 08069270
-| moveset loop | 080692C2
+| moveset loop | 080692C2 |
+| gWishFutureKnock | 020243d0 |
+| gBattleTypeFlags | 02022fec |
+| gLastUsedItem | 02024208 |
+| CB2_LoadMap2 | 08085fcc |
+| GiveBoxMonInitialMoveset | 08069270 |
+
+# Marking ACE
+- Markings memcpy'd to 020032C0
+- return is 0806901B (BoxMonToMon)
+- return to 081C00E7 (CopyMonToSummaryStruct)
+- return to 081BFC43 (SummaryScreen_LoadGraphics)
+... later
+- accessed 0806A952 (GetBoxMonData)
+- return to 0806A66F (GetMonData)
+- return to 081C49A7 (CreateMonMarkingsSprite)
+- StartSpriteAnim(020207C8, u8 markings)
+  - sprite->animNum = markings (020207F2)
+... LATER
+- accessed 080076B6 (BeginAnim)
+... later
+- accessed 08007796 (ContinueAnim)
+... animation delay
+- accessed 080077E2 (ContinueAnim)
+- anims = u32 at 020207C8 (0859EFA4?)
+- foo = u32 at anims+markings*4
+- pretype = foo+cmd*4 (cmd is 1?)
+- funcindex = 3
+- type = ldrsh pretype + 0
+- @ 080077F4
+- if type < 0: funcindex = type + 3
+- call u32 at 082EC6D4+4*funcindex (an animCmd)
+- 41: 00000000
+- 42: 6821D20C
+- 43: 00000C00
+- 44: E3500801
+- 45: 2F5A082D
+- 46: 00000000
+- 47: 00000C00
+
+## Mail Glitch?
+- gSaveBlock1 + 0x2BE0 + slot*0x24 (0x2BE0 + 0xFF*0x24 = 0x4FBC)
+- edits substruct_1[3:]-substruct_2[:10] of box 2 slot 27
+- gWishFutureKnock flags: 020243F9
+- BATTLE_TYPE_SECRET_BASE 0x8000000
+
+## New Route:
+- Mudkip:
+- Target EVs: 17 HP 6 AT (HP Up, Kelpsy Berry, Wurmple, Solrock, Poochyena)
+- Order: Any Abra Marshtomp
+- Rose fight: KO Any, bring Abra to 1, switch to Marshtomp (this updates slot to 3)
+- Teleport to Petalburg, apply vitamins/berries
+- Name Box 1, scroll back to box 2 in reverse, deposit Marshtomp Box 2 SLot 24
+- Corrupt PID & Withdraw Egg
+- Hatch. Win.
+- alternate routes: Which HP Up, Verdanturf early/late
 
 ## Front Sprite ACE Targets
 ```
@@ -65,6 +120,40 @@ E692 =  0206FFFF (146 HP 230 AT) X
 0B59 =  0206FEFE (089 HP 011 AT) X
 0B99 =  02FE0600 (153 HP 011 AT) X
 ```
+
+## Front Sprite ACE Targets (FR)
+```
+Species Addr    EVS             (H)atch/(S)ummary
+0611 = 0206fefe (017 HP 006 AT) H
+0a3b = 0206fefe (059 HP 010 AT) x
+411d = 0206fefe (029 HP 065 AT) x
+085b = 0206ffff (091 HP 008 AT) x
+0b59 = 0206fefe (089 HP 011 AT) H
+0a5e = 0206fefe (094 HP 010 AT)
+4139 = 0206fefe (057 HP 065 AT)
+0a8c = 0206ffff (140 HP 010 AT)
+0599 = 0206fefe (153 HP 005 AT)
+0799 = 0206fefe (153 HP 007 AT)
+4166 = 0206fefe (102 HP 065 AT)
+4176 = 0206fefe (118 HP 065 AT)
+08b7 = 0206ffff (183 HP 008 AT)
+e905 = 0206fefe (005 HP 233 AT)
+41bf = 0206fefe (191 HP 065 AT)
+ea22 = 0206fefe (034 HP 234 AT)
+ea25 = 0206fefe (037 HP 234 AT)
+45cf = 0206ffff (207 HP 069 AT)
+fe20 = 0206fefe (032 HP 254 AT)
+40e2 = 0206fefe (226 HP 064 AT)
+40e6 = 0206fefe (230 HP 064 AT)
+e642 = 0206fefe (066 HP 230 AT)
+40ed = 0206ffff (237 HP 064 AT)
+ff49 = 0206fefe (073 HP 255 AT)
+fd5c = 0206fefe (092 HP 253 AT)
+ff5e = 0206ffff (094 HP 255 AT)
+fd7a = 0206fefe (122 HP 253 AT)
+e6a6 = 0206ffff (166 HP 230 AT)
+f5a2 = 0206fefe (162 HP 245 AT)
+```
 ## Sprite ACE
 - Acquire DOTS, or a similar corruption target, with (233 HP, 64 AT) EVs
 - Place in Box 2 Slot 24
@@ -76,10 +165,67 @@ E692 =  0206FFFF (146 HP 230 AT) X
 - Place ARM code starting in Box 12 Slot 13 and every 10 slots after
 - THUMB target address is 0206FFFF (Box 12 Slot 3 nickname)
 
-### Execution Info
+# Testing Abra corruption frames
+```
+RNG       Cycle   PID      Works?
+37D87E94  692     6C905417 N
+D14C4059  855     A09DD804 Y
+2D610993  929     10C751B5 N
+7719D16C  1292    FF6EE2B3 N
+9C9BC078  1400    EC5E800E N
+F03F0A98  1432    4B703247 N
+3EBA17DE  1654    915D1DC7 Y
+```
+
+# 855 Abra Corruption results
+- 18/32 corrupt nothing
+- 1/32 corrupts PID (good Egg)
+- 1/32 corrupts TID (other, bad Egg) if and only if SID is bad
+- 6/32 corrupt data that can never cause a Bad Egg
+- 6/32 corrupt substructure data that can cause a Bad Egg
+
+Bad Eggs can only occur if !(SID & 0x4000), i.e if your SID's uppermost nibble is 0, 1, 2, 3, 8, 9, A, B (1/2 chance)
+```
+0202Axxx
+Address Corrupted
+89C     substruct_1[11]
+8A0     substruct_1[7] (exp)
+8A4     substrict_1[3]
+8A8     substruct_0[11] (sheen)
+8AC     substruct_0[7] (beauty)
+8B0     substruct_0[3] (speed EV)
+8B4     Trash bytes
+8B8     Markings
+8BC     4th character of OT
+8C0     unused egg flags
+8C4     8th character of nickname
+8C8     4th character of nickname
+8CC     TID/SID (other egg in Luxury/Premier Ball)
+8D0     PID (what we want)
+8D4     Nothing
+8D8     Nothing
+8DC     Nothing
+8E0     Nothing
+8E4     Nothing
+8E8     Nothing
+8EC     Nothing
+8F0     Nothing
+8F4     Nothing
+8F8     Nothing
+8FC     Nothing
+900     Nothing
+904     Nothing
+908     Nothing
+90C     Nothing
+910     Nothing
+914     Nothing
+918     Nothing
+```
+
+## Front Sprite ACE
 r0: 02020784   r1: addr   r2: 00000010   r3: 00000000
 r4: 02020784   r5: 020207C2   r6: 00000005   r7: 00000001
-r8: 00000000   r9: 00000000  r10: 00000000  r11: 00000000
+r8: 00000000   r9: 00000000  r10: 00000000  r11: 000000
 r12: 00000040  r13: 03007EDC  r14: 080069E7  r15: 02070004
 cpsr: [-------]
 - Preserve r2-r7
@@ -91,7 +237,305 @@ cpsr: [-------]
 - GameClear: 08137734+1
 - OT branch: (EA0000AE) (-  v) (+10 pokemon) or (I  v) (+10 pokemon?)
 - Nickname branch: (ea0000b1) ("  v) (+9 pokemon)
-### Bootstrap
+### Change to 0x40E9 (must have BX r0 in Box 14)
+- party: 020244ec
+- TID at 020244F0
+- spcies at 02024508
+- checksum: 02024508
+- Add to checksum: 0x40E9 - 0x0611 = 0x3AD8
+- Species: 0x40E9 ^ 0x9746 ^ 0x0084 = 0xd72b
+```
+box_01: ()
+SUBC r11,r1,BA01    E2C1BCBA @ r11=020644FD
+BIC r12,r11,E90     E3CBCEE9 @ r12=0206406D
+box_02: ()
+                    B2AC00FF
+BIC r0,r12          E3CC0000 @ r0=0206406D
+box_03: ()
+                    B2ACFF00
+LDRH r12,[r11+B]    E1DBC0BB @ r12=checksum
+box_04: ()
+                    BFFF0000
+ADC r12,D8          E2ACC0D8
+                    FF000000
+box_05: ()
+ADC r12,3A00        E2ACCDE8 @ r12=checksum+0x40E9-0x0611
+STRH r12,[r11+B]    E1EBC0BB @ store checksum, r11=02064508
+box_06: ()
+                    B2AC00FF
+LDRH r12,[pc+0x16]  E1DFC1B6
+box_07: ()
+                    B2ACFF00 4
+BIC r12,C3          E3CCC0C3 8 @ r12=E02CC000 EOR r12,r12,r0
+box_08: ()
+                    BFFF0000 C
+STRH r12,[pc+4]     E1CFC0B6 10
+                    FF000000 14 4
+box_09: ()
+LDRH r12,[r11+0x4C] E1DBC4BC 18 8 @ r12=TID
+EOR r12,r12,r0      E0ECC000 1C C
+box_10: ()
+                    B2AC00FF
+STRH r12,[r11+5]    E1CBC0B4 @ store species
+box_11: ()
+                    B2ACFF00
+ADC r12,lr,C60      E2AECEC6 @ r12=08007647
+box_12: ()
+                    BFFF0000
+ADC r12,D30000      E2ACC8D3 @ r12=8D37647
+                    FF000000
+box_13: ()
+BIC r12,C00000      E3CCC8C0 @ r12=8137647
+ADC r0,r12,EE       E2AC00EE @ r0=GameClear
+```
+### HOF Map Warp (BX r0 in box 14)
+- Change map location
+- Call CB2_LoadMap2: 08085fcc+1
+```
+box_01: (mFloyLRo) @ lowercase L
+MVN r12,0xe1        E3E0C0E1 @ r12=ffffff1e
+BIC r12,0xed>>12    E3CCC6ED @ r12=f12fff1e
+box_02: ( ?”m”Ro )
+                    B2AC00FF
+BIC r11,r12,0xe1>>4 E3CCB2E1 @ r11=BX r0
+box_03: (?”…P-n  )
+                    B2ACFF00
+ADC r12,lr,B0000    E2AECAB0 @ r12=080B69E7
+box_04: (EFQRn   )
+                    BFFF0000
+SUBC r12,C0000      E2CCCBC0 @ r12=080869E6
+                    FF000000
+box_05: (…TRnt ?n)
+SUBC r12,B00        E2CCCEB0 @ r12=08085EE5
+ADC r0,r12,E8       E2AC00E8 @ r0=CB2_LoadMap2
+box_06: ( ?”     )
+                    B2AC00FF
+                    00000000
+box_07: (?”      )
+                    B2ACFF00
+                    00000000
+box_08: ()
+                    BFFF0000
+ADC r12,pc,0x30     E2BFC1C0 @ r12=$+38
+                    FF000000 +4
+box_09: ()
+STR r11,[r12]       E5ACB000 +8 @ store BX r0
+SUBC r12,lr,D00     E2CECED0 +C @r12=08005CE6
+box_10: ()
+                    B2AC00FF +10
+ADC r12,3000000     E2BCC7C0 +14 @ r12=0B005CE6
+box_11: ()
+                    B2ACFF00 +18
+BIC r12,C8000000    E3CCC4C8 +1C @ r12=03005CE6
+box_12: ()
+                    BFFF0000 +20
+LDR r11,[r12+A6]    E5BCB0A6 +24 @ r12=saveBlock1
+                    FF000000 +28
+box_13: ()
+MOV r12,B10         E3B0CEB1 +2C @ map group 16:11
+STRH r12,[r11+4]    E1CBC0B4 +30
+box_14: ( ?”)          
+                    B2AC00FF +34
+                    yyyyyyyy +38
+```
+### THUMB/0x40E9 Map Warp
+- Change map location
+- Call CB2_LoadMap2: 08085fcc+1
+- compare at 080692C2 (r0 > r1 to break)
+- compare at 080692F8 (r0 == 0xffff to break)
+```
+box_01: ()
+ADD r1,pc,0             A100 @ set jump target
+PUSH r1-r4,r6-r7,lr     B5DE @ set up stack
+PUSH r5-r7,lr           B5E0
+                        0000
+box_02: ()
+                    D200D2FF
+MVN r12,0xe1        C3E0C2E1 @ r12=ffffff1e
+box_03: ()
+BL                      FFDC @ BX to box_02 in ARM mode
+                        D200
+BIC r12,0xed>>12    C3CCC6ED @ r12=f12fff1e
+box_04: ()
+POP r2-r4,r6-r7,pc      BDDC @ restore re
+                        BFFF
+BIC r11,r12,0xe1>>4 E3CCB0E1 @ r11=BX r0
+                    FF000000
+box_05: ()
+ADC r12,r7,B0000    E2A7CAB0 @ r12=080B69E7
+SUBC r12,C0000      E2CCCBC0 @ r12=080869E6
+box_06: ()
+                    B2AC00FF
+SUBC r12,B00        E2CCCEB0 @ r12=08085EE5
+box_07: ()
+                    B2ACFF00
+ADC r0,r12,E8       E2AC00E8 @ r0=CB2_LoadMap2
+box_08: ()
+                    BFFF0000
+ADC r12,pc,0x34     E2BFC1B0 @ r12=$+3C
+                    FF000000 +4
+box_09: ()
+STR r11,[r12]       E5ACB000 +8 @ store BX r0
+SUBC r12,r7,D00     E2C7CED0 +C @ r12=08005CE6
+box_10: ()
+                    B2AC00FF +10
+ADC r12,3000000     E2BCC7C0 +14 @ r12=0B005CE6
+box_11: ()
+                    B2ACFF00 +18
+BIC r12,C8000000    E3CCC4C8 +1C @ r12=03005CE6
+box_12: ()
+                    BFFF0000 +20
+LDR r11,[r12+A6]    E5BCB0A6 +24 @ r12=saveBlock1
+                    FF000000 +28
+box_13: ()
+MOV r12,B10         E3B0CEB1 +30 @ map group 16:11
+STRH r12,[r11+4]    E1CBC0B4 +34
+box_14: ()
+                    yyyyyyFF +38
+                    yyyyyyyy +3C @ overwritten with BX r0, return to box_03 in THUMB mode
+```
+### Navel Rock Warp
+- Change map location
+- Call CB2_LoadMap2: 08085fcc+1
+- Navel Rock: 26:66 or 0x421A
+```
+box_01: (mFloyLRo) @ lowercase L
+MVN r12,0xe1        E3E0C0E1 @ r12=ffffff1e
+BIC r12,0xed>>12    E3CCC6ED @ r12=f12fff1e
+box_02: ( ?”m”Ro )
+                    B2AC00FF
+BIC r11,r12,0xe1>>4 E3CCB2E1 @ r11=BX r0
+box_03: (?”…P-n  )
+                    B2ACFF00
+ADC r12,lr,B0000    E2AECAB0 @ r12=080B69E7
+box_04: (EFQRn   )
+                    BFFF0000
+SUBC r12,C0000      E2CCCBC0 @ r12=080869E6
+                    FF000000
+box_05: (…TRnt ?n)
+SUBC r12,B00        E2CCCEB0 @ r12=08085EE5
+ADC r0,r12,E8       E2AC00E8 @ r0=CB2_LoadMap2
+box_06: ( ?”lGEn ) @ lowercase L
+                    B2AC00FF
+ADC r12,pc,0x38     E2BFC1E0 @ r12=$+40
+box_07: (?” …?q  )
+                    B2ACFF00
+STR r11,[r12]       E5ACB000 +8 @ store BX r0
+box_08: (EVTTn   )
+                    BFFF0000 +C
+SUBC r12,lr,D00     E2CECED0 +10 @r12=08005CE6
+                    FF000000 +14
+box_09: (FMBnNJRo)
+ADC r12,3000000     E2BCC7C0 +18 @ r12=0B005CE6
+BIC r12,C8000000    E3CCC4C8 +1C @ r12=03005CE6
+box_10: ( ?”5…Bq ) @ five, not S
+                    B2AC00FF +20
+LDR r11,[r12+A6]    E5BCB0A6 +24 @ r12=saveBlock1
+box_11: (?”CRlo  ) @ lowercase L
+                    B2ACFF00 +28
+MVN r12,BD00        E3E0CCBD
+box_12: (EqFRo   )
+                    BFFF0000 +30
+BIC r12,E5          E3CCC0E5 @ r12=map 26:66
+                    FF000000 +38
+box_13: (’FQm)
+STRH r12,[r11+4]    E1CBC0B4 +3C
+```
+### Faraway Island Warp
+- Change map location
+- Call CB2_LoadMap2: 08085fcc+1
+- Faraway Island: 26:56 or 0x381A
+- Birth Island: 26:58 or 0x3A1A
+- For Birth Island: change Box 11 from (?”oS…o  ) to (?”wS…o  )
+```
+box_01: (mFloyLRo) @ lowercase L
+MVN r12,0xe1        E3E0C0E1 @ r12=ffffff1e
+BIC r12,0xed>>12    E3CCC6ED @ r12=f12fff1e
+box_02: ( ?”m”Ro )
+                    B2AC00FF
+BIC r11,r12,0xe1>>4 E3CCB2E1 @ r11=BX r0
+box_03: (?”…P-n  )
+                    B2ACFF00
+ADC r12,lr,B0000    E2AECAB0 @ r12=080B69E7
+box_04: (EFQRn   )
+                    BFFF0000
+SUBC r12,C0000      E2CCCBC0 @ r12=080869E6
+                    FF000000
+box_05: (…TRnt ?n)
+SUBC r12,B00        E2CCCEB0 @ r12=08085EE5
+ADC r0,r12,E8       E2AC00E8 @ r0=CB2_LoadMap2
+box_06: ( ?”lGEn ) @ lowercase L
+                    B2AC00FF
+ADC r12,pc,0x38     E2BFC1E0 @ r12=$+40
+box_07: (?” …?q  )
+                    B2ACFF00
+STR r11,[r12]       E5ACB000 +8 @ store BX r0
+box_08: (EVTTn   )
+                    BFFF0000 +C
+SUBC r12,lr,D00     E2CECED0 +10 @r12=08005CE6
+                    FF000000 +14
+box_09: (FMBnNJRo)
+ADC r12,3000000     E2BCC7C0 +18 @ r12=0B005CE6
+BIC r12,C8000000    E3CCC4C8 +1C @ r12=03005CE6
+box_10: ( ?”5…Bq ) @ five, not S
+                    B2AC00FF +20
+LDR r11,[r12+A6]    E5BCB0A6 +24 @ r12=saveBlock1
+box_11: (?”oS…o  ) @ capital S
+                    B2ACFF00 +28
+MOV r12,38C0        E3B0CDE3 +2C
+box_12: (E4FRn   )
+                    BFFF0000 +30
+SUBC r12,A5         E2CCC0A5 +34 @ r12=map group 26:56
+                    FF000000 +38
+box_13: (’FQm)
+STRH r12,[r11+4]    E1CBC0B4 +3C
+                    xxxxxxxx +40
+```
+### HOF Map Warp
+- Change map location
+- Call CB2_LoadMap2: 08085fcc+1
+```
+box_01: (mFloyLRo) @ lowercase L
+MVN r12,0xe1        E3E0C0E1 @ r12=ffffff1e
+BIC r12,0xed>>12    E3CCC6ED @ r12=f12fff1e
+box_02: ( ?”m”Ro )
+                    B2AC00FF
+BIC r11,r12,0xe1>>4 E3CCB2E1 @ r11=BX r0
+box_03: (?”…P-n  )
+                    B2ACFF00
+ADC r12,lr,B0000    E2AECAB0 @ r12=080B69E7
+box_04: (EFQRn   )
+                    BFFF0000
+SUBC r12,C0000      E2CCCBC0 @ r12=080869E6
+                    FF000000
+box_05: (…TRnt ?n)
+SUBC r12,B00        E2CCCEB0 @ r12=08085EE5
+ADC r0,r12,E8       E2AC00E8 @ r0=CB2_LoadMap2
+box_06: ( ?”VGEn )
+                    B2AC00FF
+ADC r12,pc,0x34     E2BFC1D0 @ r12=$+3C
+box_07: (?” …?q  )
+                    B2ACFF00
+STR r11,[r12]       E5ACB000 +8 @ store BX r0
+box_08: (EVTTn   )
+                    BFFF0000 +C
+SUBC r12,lr,D00     E2CECED0 +10 @r12=08005CE6
+                    FF000000 +14
+box_09: (FMBnNJRo)
+ADC r12,3000000     E2BCC7C0 +18 @ r12=0B005CE6
+BIC r12,C8000000    E3CCC4C8 +1C @ r12=03005CE6
+box_10: ( ?”5…Bq ) @ 5, not S
+                    B2AC00FF +20
+LDR r11,[r12+A6]    E5BCB0A6 +24 @ r12=saveBlock1
+box_11: (?”“T…o  )
+                    B2ACFF00 +28
+MOV r12,B10         E3B0CEB1 +2C @ map group 16:11
+box_12: (E’FQm   )
+                    BFFF0000 +30
+STRH r12,[r11+4]    E1CBC0B4 +34
+                    FF000000 +38
+```
+### Thumb -> ARM Bootstrap (nickname)
 ```
 box_12_04: @ (x♂zN”6FFxC)
 PUSH r2-r3,r5-r7,lr       B5EC @ preserve necessary registers
@@ -117,7 +561,7 @@ STMIA r0!,r6,r7           C0C0 @ store new jump address
 POP r2-r3,r5-r7,pc        BDEC @ restore registers and jump out
 ```
 
-### Hall of Fame Warp
+### Nickname GameClear
 ```
 box_12_13: @ (mFloyLRo  )
 MVN r12,0xe1        E3E0C0E1 @ r12=ffffff1e
@@ -143,7 +587,7 @@ B+11                EA0000D9
 BIC r0,lr
 ```
 
-### Box Names
+### Box Name GameClear
 ```
 box_01: (mFloyLRo)
 MVN r12,0xe1        E3E0C0E1 @ r12=ffffff1e
@@ -161,57 +605,52 @@ ADC r12,D30000      E2ACC8D3 @ r12=8D37647
 box_05: (FNRoz ?n)
 BIC r12,C00000      E3CCC8C0 @ r12=8137647
 ADC r0,r12,EE       E2AC00EE @ r0=GameClear
-box_06: ( ?”UF_m )
+box_06: ( ?”FHEn )
+                    B2AC00FF
+ADC r12,pc,C        E2BFC2C0 @ r12=$+14
+box_07: (?” …?q  ) @ lowercase L
+                    B2ACFF00
+STR r11,[r12]       E5ACB000 +8
+box_08: (E   ) @ three spaces
+                    BFFF0000 +C
+                    FF000000 +10
+                    FF000000 +14 (target)
+```
+
+### Box Name GameClear (old)
+```
+box_01: (mFloyLRo)
+MVN r12,0xe1        E3E0C0E1 @ r12=ffffff1e
+BIC r12,0xed>>12    E3CCC6ED @ r12=f12fff1e
+box_02: ( ?”m”Ro )
+                    B2AC00FF
+BIC r11,r12,0xe1>>4 E3CCB2E1 @ r11=BX r0
+box_03: (?”LT-n  )
+                    B2ACFF00
+ADC r12,lr,C60      E2AECEC6 @ r12=08007647
+box_04: (EYN?n   )
+                    BFFF0000
+ADC r12,D30000      E2ACC8D3 @ r12=8D37647
+                    FF000000
+box_05: (FNRoz ?n)
+BIC r12,C00000      E3CCC8C0 @ r12=8137647
+ADC r0,r12,EE       E2AC00EE @ r0=GameClear
+box_06: ( ?”UF…m )
                     B2AC00FF
 MOV r12,pc>>1       E1B0C0CF @r12=(this address+8)>>1
 box_07: (?”lHBn  ) @ lowercase L
                     B2ACFF00
 ADC r12,r12,0xE     E2BCC2E0 +8
-box_08: (ExU_m   )
+box_08: (ExU…m   )
                     BFFF0000 +C
 MOV r12,r12<<1      E1B0CFEC @ r12=target
                     FF000000 +14
-box_09: ( _?q  ?”)
+box_09: ( …?q  ?”)
 STR r11,[r12]       E5ACB000 +18
                     B2AC0000 +1C
 box_10: ( ?”)
                     B2AC00FF +20
                     B2AC0000 +24 (target)
-```
-
-```
-box_01:
-                    xxxxxxxx
-                    xxxxxxxx
-box_02:
-                    xxxxxxff
-                    xxxxxxxx
-box_03:
-                    yyyyffxx
-                    yyyyyyyy
-box_04:
-                    zzffyyyy
-                    zzzzzzzz
-                    ffzzzzzz
-box_05:
-                    xxxxxxxx
-                    xxxxxxxx
-box_06:
-                    xxxxxxff
-                    xxxxxxxx
-box_07:
-                    yyyyffxx
-                    yyyyyyyy
-box_08:
-                    zzffyyyy
-                    zzzzzzzz
-                    ffzzzzzz
-```
-
-```
-box_14_3:
-MOV r12,B10         E3B0CEB1
-STRH r12,[r11+4]    E1CBC0B4
 ```
 
 ## Ram Script ACE
