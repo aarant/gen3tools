@@ -57,6 +57,9 @@ def front_sprite_callback(f, species: int):  # Calculate sprite callback address
     # US
     tAnimId = read(f, 0x083299ec+species-1, 1)
     target = read(f, 0x0860aa88+4*tAnimId)
+    # FR
+    tAnimId = read(f, 0x0833155C+species-1, 1)
+    target = read(f, 0x0860EE10+4*tAnimId)
 
     # target = canonicalize(target)
     # print(f'{target:08X}')
@@ -84,6 +87,22 @@ def back_sprite_callback(f, species: int, nature: int):  # Calculate back sprite
     target = read(f, sMonAnimFunctions+4*tAnimId, 4)  # sMonAnimFunctions[tAnimId]
     return target
 
+def list_front_sprite_callbacks(f):
+    low = 0x02000000
+    high = 0x03000000
+    print('Species Nat Addr EVS')
+    l = []
+    for species in range(2**16):
+        target = front_sprite_callback(f, species)
+        target2 = canonicalize(target)
+        if (low <= target < high) and target != 0x02020000 and target != 0x02fe0600:
+            hp = species & 0xff
+            at = (species >> 8) & 0xff
+            l.append((species, target, hp, at))
+    l.sort(key=lambda tup: tup[2]+tup[3])
+    for species, target, hp, at in l:
+        print(f'{species:04x} = {target:08x} ({hp:03d} HP {at:03d} AT)')
+
 def list_back_sprite_callbacks(f):
     low = 0x02000000
     high = 0x03000000
@@ -97,6 +116,47 @@ def list_back_sprite_callbacks(f):
                 at = (species // 8) & 0xff
                 print(f'{species:04x} {nature:02d} = {target:08x} {target2:08x} ({hp:03d} HP {at:03d} AT)')
 
+
+def find_anims():
+    rom_path = '/home/ariel/Desktop/pokeemerald-fr.gba'
+    bases = None
+    with open(rom_path, 'rb') as rom:
+        from collections import defaultdict
+        locations = defaultdict(set)
+        addr = 0
+        while True:
+            b = rom.read(4)
+            if len(b) != 4:
+                print(f'Broke at 0x{addr | 0x08000000:04X}')
+                break
+            v = int.from_bytes(b, 'little')
+            # input(f'{v:08X}')
+            locations[v].add(addr | 0x08000000)
+            addr += 4
+        with open('fuzz/jumps.txt', 'r') as f:
+            for line in f:
+                species, value = line[:4], line[5:]
+                species, value = int(species, 16), int(value, 16)
+                print(f'{species:04X} {value:08X}')
+                if species == 0x0672:
+                    continue
+                s = set()
+                for v in range(value-5, value+2):
+                    for loc in locations[v]:
+                        for i in range(-256*4, 256*4, 4):
+                            s.add(loc+i)
+                if bases is None:
+                    bases = s
+                    print(f'->{len(bases)}')
+                else:
+                    inter = bases & s
+                    if len(inter) < len(bases):
+                        print(f'->{len(inter)}')
+                    bases = inter
+                if len(bases) == 1:
+                    loc = bases.pop()
+                    print(f'Found?: {loc:08X}')
+                    break
 
 
 def read(f, addr: int, size: int = 4, signed: bool = False):
@@ -113,6 +173,5 @@ def read(f, addr: int, size: int = 4, signed: bool = False):
 
 
 if __name__ == '__main__':
-    with open('../pokeemerald/pokeemerald.gba', 'rb') as f:
-        f.seek(0)
-        list_back_sprite_callbacks(f)
+    with open('/home/ariel/Desktop/pokeemerald-fr.gba', 'rb') as f:
+        list_front_sprite_callbacks(f)

@@ -584,9 +584,9 @@ function fn()
 		if isegg == 1 then
 			display(0,25, "Pokemon: " .. pokemon[pokemonID + 1] .. " egg", "yellow")
 		else
-			display(0,25, "Pokemon: " .. pokemon[pokemonID + 1], "yellow")
+			display(0,25, string.format("Pokemon: %04X %08X", pokemonID, pidAddr + BlockAoff + 8), "yellow")
 		end
-		display(0,35, "PID : " .. bit.tohex(pid), "magenta")
+		display(0,35, "PID : " .. bit.tohex(pid) .. string.format(" %08X", pidAddr), "magenta")
 		if gen == 4 then
 			display(0,45, "Item: " .. item_gen4[heldItem + 1], "white")
 		else -- Gen 5

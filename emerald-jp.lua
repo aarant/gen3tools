@@ -1,6 +1,18 @@
 -- HUD for Pokemon Emerald (J)
 final_inp = 400000 -- final input frame
 
+function readEnemy(n)
+  local addr = 0x0243E8 + 100*n
+  local s = string.format("foe%d.bin", n)
+  gui.text(0, 14*14, s)
+  local out = assert(io.open(s, "wb"))
+  for i=0,79 do
+    local b = memory.readbyte(addr + i, "EWRAM")
+    out:write(string.char(b))
+  end
+  out:close()
+end
+
 function showState()
   gui.cleartext()
   frame = emu.framecount()
@@ -54,8 +66,11 @@ function showState()
     gSaveBlock2 = bit.band(memory.read_u32_le(0x5AF0, "IWRAM"), 0xFFFFFF)
     otId = memory.read_u32_le(gSaveBlock2+0xA, "EWRAM")
     gui.text(0, 14*4, string.format("ID: %04X %08X", gTrainerId, otId))
+    mudkipPID = memory.read_u32_le(0x024190, "EWRAM")
+    gui.text(0, 14*5, string.format("Mudkip: %08X", mudkipPID))
     -- addr = memory.read_u32_le(0x007918, "IWRAM")
     -- gui.text(0, 14*4, string.format("Addr: %08X", addr))
   end
 end
+for i=0,5 do readEnemy(i) end
 event.onframeend(showState)

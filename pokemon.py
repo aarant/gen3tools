@@ -331,10 +331,10 @@ def analyze_loop():
 
 if __name__ == '__main__':
     mon = bytes.fromhex('04D89DA0A28E2EDDA9A6A6FFFFFFFFFFFFFF0202C7D9E6E6E4FFFF0016DD0000B750B37DA656B37DA656B37D9956B37D4A56B37DA610B37DC256B37DA656B37DB256B37DA64934DC6B9EBD7BA656B37D')
-    for tid in range(2**32):
+    for tid in range(0x40000000, 2**32):
         if not test_abra(BoxMon.from_buffer(bytearray(mon)), tid):
             print(f'{tid:08X}')
-        elif tid % 100000 == 0:
+        elif tid % 1000000 == 0:
             print(f'i {tid:08X}')
     quit()
     analyze_loop()

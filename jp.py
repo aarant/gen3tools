@@ -1,3 +1,5 @@
+import math
+
 from seed import method1_mons, r_nature, seeds, rand, nature_map, dmg_seek, acc_seek, wild_mons
 from pokemon import BoxMon, perms
 
@@ -47,6 +49,12 @@ def corruptible(pid, otId) -> bool:  # Test if corruption swaps EVs and Moves
     sub1_p = perms[pid2 % 24][1]  # Attacks
     return test_double_corrupt(pid, otId) if sub1_p == sub2 else False
 
+def species_corruptible(pid: int) -> bool:  # Whether corruption swaps EVs and species
+    sub2 = perms[pid % 24][2]  # EVs
+    pid2 = pid | 0x40000000
+    sub0_p = perms[pid2 % 24][0]  # Growth
+    return sub2 == sub0_p
+
 
 def mudkip_key(t):  # Key for ranking Mudkip PIDs
     i, pid, ivs = t
@@ -61,7 +69,6 @@ def mudkip_key(t):  # Key for ranking Mudkip PIDs
         nature = 2
     ivs = tuple(31-iv for iv in ivs)  # Prefer higher IVs
     prefer = (0 if ivs[3] < 2 else 10, ivs[1], ivs[5], ivs[2], ivs[4], ivs[0])  # sa, at, sp, de, sp, hp
-    # prefer = (ivs[4], ivs[1], ivs[3], ivs[5], ivs[2], ivs[0])  # sa, at, sp, sd, de, hp (old)
     return (nature,) + prefer + (i,)
 
 
@@ -69,13 +76,13 @@ def glitch_mudkip(seed, otId, cycle, limit=600):  # Print good mudkip candidates
     offset = 6018  # Approximate number of cycles from ID generation to Mudkip
     offset = 8606-2641+3  # 5968, 1 character name
     inp_offset = -3
-    candidates = []
-    for i, pid, ivs in method1_mons(seed, offset, limit):
-        if corruptible(pid, otId):
-            candidates.append((i, pid, ivs))
+    candidates = [(i, pid, ivs) for i, pid, ivs in method1_mons(seed, offset, limit) if species_corruptible(pid)]
+    # candidates = [(i, pid, ivs) for i, pid, ivs in method1_mons(seed, offset, limit) if corruptible(pid, otId)]
     candidates.sort(key=mudkip_key)
+    print('Cycle PID      Nature  HP  AT  DE  SA  SD  SP')
     for i, pid, ivs in candidates[:10]:
-        print(f'{i+cycle+inp_offset} {pid:08x} {r_nature[pid % 25]} {ivs}')
+        ivs = ', '.join(f'{iv:2d}' for iv in ivs)
+        print(f'{i+cycle+inp_offset:5d} {pid:08x} {r_nature[pid % 25]:7} {ivs}')
 
 
 def male_mons(seed, frame=0, limit=1000, threshold=127):  # Yield Wally's Ralts
@@ -161,32 +168,63 @@ def pomeg_corrupt(addr, pid=0, tid=0):
     egg_addr = addr + offset + pos*sub_length + egg_offset
     return egg_addr
 
+# V4:   8fd82cd8 Rash   (12, 30, 23, 31,  5, 10)
+
+# Seed: f3423004->E4E80A27 ID: 283e f342283e
+# Cycle PID      Nature  HP  AT  DE  SA  SD  SP
+#  8688 81ee947c rash    22, 30,  2, 30, 10, 27
+
+# Seed: bda0398b->5B433AA2 ID: 71dd bda071dd
+# Cycle PID      Nature  HP  AT  DE  SA  SD  SP
+#  8751 08bb2be0 quiet    8, 29,  8, 31, 22, 29
+
+# Seed: af69cc70->7AF68C23 ID: d18a af69d18a
+# Cycle PID      Nature  HP  AT  DE  SA  SD  SP
+#  8836 bfa38d48 quiet    7, 24, 19, 31,  4, 12
+
+# Seed: 818b6421->73621080 ID: 71e3 818b71e3
+# Cycle PID      Nature  HP  AT  DE  SA  SD  SP
+#  9162 24558fdf quiet    8, 25, 12, 30,  4, 12
+
+# Seed: d1e63191->A943A930 ID: 88d3 d1e688d3
+# Cycle PID      Nature  HP  AT  DE  SA  SD  SP
+#  8951 2b420c53 rash    22, 28, 11, 28, 31,  7
+
+# Seed: b839f665->50DF0F74 ID: b2c7 b839b2c7
+# Cycle PID      Nature  HP  AT  DE  SA  SD  SP
+#  9115 8370b91c mild    30, 29, 28, 30, 16, 30
+
+# Seed: b267eef8->6CE0B00B ID: 0152 b2670152
+# Cycle PID      Nature  HP  AT  DE  SA  SD  SP
+#  8839 89ec0772 rash    26, 26, 27, 30,  1, 31
+
+# Seed: 26e7ca26->2FAD06A1 ID: 41b0 26e741b0
+# Cycle PID      Nature  HP  AT  DE  SA  SD  SP
+#  8970 16914024 quiet    8, 18,  6, 31, 31,  0
+
 
 if __name__ == '__main__':
-    # tid = 0x54ab
-    # seed = 0x38033fcc
+    # tried_tids = {0x0153, 0X283E, 0x71dd, 0xb5c8, 0x0331, 0x4c85, 0x7d5d, 0xcbce,  # original; No extra buttons
+    #               0x0670, 0x4ba3, 0x88cd, 0xd18a, 0x1ac9, 0x640d, 0xb2c1, 0x015c,
+    #               0x71e3, 0xb5ce, 0x0337, 0x4c7b, 0x7d63, 0xcbc4, 0x0666, 0x4ba9,  # l
+    #               0x88D3, 0xD190, 0x1ACF, 0x6413, 0xb2c7, 0x0152, 0x41b0, 0x8a3e,
+    #               0x71e2, 0xb5c9, }
+    # cycle = 2636
+    # seed = 0xb267eef8
+    # tid = 0x0152
+    # test_seed = next(seeds(tid, 590))
+    # seed = test_seed
+    # if tid in tried_tids:
+    #     print(f'TID 0x{tid:04X} already tried!')
+    #     quit()
     # otId = ((seed >> 16) << 16) | tid
-    # print(f'{seed:08x} {tid:04x} {otId:08x}')
-    # glitch_mudkip(seed, otId, 2726)
-    # for i in range(10):
-    #     addr = 0x0202A52C-100*i
-    #     egg_addr = pomeg_corrupt(addr)
-    #     print(f'{addr:08x} {egg_addr:08x}')
-    # tried = [0xb5ca, 0x0334, 0x4c83, 0x7d5c, 0xcbc8, 0x066b, 0x4ba9, 0x88d4,
-    #          0xd18c, 0x1aca, 0x6409, 0xb2bc, 0x0152, 0x41ae, 0x8a37, 0xd24e,
-    #          0x71e4, 0x71ea, 0xb5c0, 0x032a, 0x4c79, 0x71e3, 0xb5be, 0x0337,
-    #          0x4c7b, 0x7d63, 0xcbc4, 0x0666, 0x88d3, 0xd180, 0x1acf, 0x6413,
-    #          0x71e2, 0xb5c9, 0x0330, 0x4c86, 0x7d5d, 0xcbc9, 0x066f, 0x4ba8,
-    #          0x88ce, 0x640d, 0xb2c2, 0x0155, 0x41a3, 0x8a3b, 0xd247, 0x1b9f,
-    #          0xb5c6, 0x0339, 0x4c7d, 0x7d66, 0xcbc1, 0x0672, 0x4b9f, 0x88cb,
-    #          0xd18f, 0x1acd, 0x6404, 0xb2c5, 0x0153, 0x41ad, 0x8a38, 0xd250,
-    #          0xb5c7, 0x4c84, 0xcbcd, 0x4ba2, 0x88cc, 0xd189, 0x1ac8, 0x640c,
-    #          0x032f, 0xcbc7, 0x0668, 0x4ba5, 0x88d1, 0xd185, 0x1ad3, 0x640a,
-    #          0x0336, 0xcbca, 0x88c8, 0xd188, 0x014c, 0x41a9, 0x8a40, 0xd24c]
-    # wally_zigzagoon(0x3a9bffd7, 29746)
-    # print()
-    # ralts_seek(0xf11aa2d9, 30068)
-    for i in range(10):
-        addr = 0x0202A52C-100*i
-        egg_addr = pomeg_corrupt(addr)
-        print(f'{addr:08x} {egg_addr:08x}')
+    # seed2 = list(seeds(seed, limit=2))[-1]
+    # print(f'Seed: {seed:08x}->{seed2:08X} ID: {tid:04x} {otId:08x}')
+    # glitch_mudkip(seed, otId, cycle)
+    ralts_seek(0xF705D761, 30085)
+    # zigzagoon 29530 17057853 lonely (1, 29, 13, 31, 20, 10)
+    # ralts 30149 ab396296 lonely (0, 20, 5, 5, 23, 9)
+    # 616 frames between
+    # diff is 29530-29469=61
+    print(30149-616)
+    wally_zigzagoon(0x97C74D59, 29469)

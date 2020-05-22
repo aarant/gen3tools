@@ -1,6 +1,6 @@
 # Emerald (J) TAS info
-ID: a8640153
-Mudkip: 8fd82cd8 (12, 30, 23, 31, 5, 10)
+ID: bda071dd
+Mudkip: 8751 08bb2be0 quiet (8, 29, 8, 31, 22, 29)
 trainer: そ  v EA00000F B+15
 glitch id: 0x3110 targets 02330000 (Box 12 slot 13-14)
 
@@ -49,6 +49,23 @@ glitch id: 0x3110 targets 02330000 (Box 12 slot 13-14)
 | gBattleMons | 02023D28 | 0x58 large, 0xC is moves
 | ZeroMonData: | 08067670 |
 
+## New Route:
+- Mudkip: TBD
+- (10, 13, 10, 17, 0, 26) with accuracy, defense, strength rooms
+- Target EVs: 21 HP 6 AT (HP Up, Kelpsy Berry, Wurmple, Solrock, Poochyena)
+- Early Verdanturf
+- Meteor Falls: Solrock
+- Route 102/103: Poochyena, Wurmple, capture, teach Surf, Facade, use HP Up on Abra
+- Route 111: Order as Any Abra Marshtomp, use Surf
+- Rose fight: KO Any, bring Abra to 1, switch in Marshtomp (this updates slot to 3)
+- Manip Berry Master for Pomeg, Kelpsy
+- Teleport to Petalburg, apply HP Ups, Kelpsy Berry
+- Name Box 1, scroll back to box 2 in reverse, deposit Marshtomp Box 2 Slot 24
+- Corrupt PID & Withdraw Egg
+- Hatch. Win.
+- alternate routes: Which HP Up, Verdanturf early/late
+- move switching tech
+
 ## Glitzer Popping
 - Target: 0202A52C (-100 each time)
 - 1st corruption at 0202a574
@@ -61,17 +78,14 @@ glitch id: 0x3110 targets 02330000 (Box 12 slot 13-14)
 ## Mudkip
 - ~6018 cycles from ID generation
 - 3c/2f after A press
-- +25 frames
 - (0, 0, 0, 0, 0, 1)
 
 ## Brendan 1
-- Get hit by Pound twice, crit twice to win
-- +10
+- !Tackle, !Tackle
 - (0, 0, 0, 0, 0, 2)
 
 ## Youngster Calvin
 - Tackle, !Tackle
-- +13
 - (0, 1, 0, 0, 0, 2)
 
 ## Wally Tutorial
@@ -84,22 +98,19 @@ glitch id: 0x3110 targets 02330000 (Box 12 slot 13-14)
 
 ## Aqua Grunt
 - !Tackle, !Tackle, !Tackle
-- +30
+- Poochyena outspeeds if Mudkip is Brave, Relaxed, Quiet or Sassy
 - (0, 2, 0, 0, 0, 2)
 
 ## Youngster Josh
 - !Mud Slap, !Mud Slap, !Mud Slap
-- +54
 - (0, 2, 1, 0, 0, 2)
 
 ## Roxanne
 - Water Gun, Water Gun, Water Gun, !Water Gun
-- +15
 - (0, 2, 4, 0, 0, 2)
 
 ## Catch Abra
 - Must have at least 23 HP IVs
-- -205
 
 ## Hiker Devan
 - (0, 2, 6, 0, 0, 2)
@@ -109,12 +120,16 @@ glitch id: 0x3110 targets 02330000 (Box 12 slot 13-14)
 - (0, 3, 6, 0, 0, 2)
 
 ## Brawly
-- !Water Gun x 6
-- Need Machop to use Low Kick, Makuhita to use Vital Throw
+- Mudkip is level 14 and levels up on Machop
+- Machop 16 Quiet (0)/(12) !Water Gun, Low Kick, !Water Gun
+- Meditite 16 Docile (0)/(12) !Water Gun!, !Water Gun, Focus Punch vs 15
+- Makuhita 19 Adamant (0)/(24) !Water Gun, Vital Throw, !Water Gun
+- Teach Mud Shot over Growl?
+- +1HP, +1 AT, +1SP
 - (1, 4, 6, 0, 0, 3)
 
 ## Aqua Grunts
-- last heal
+- Last heal of the run
 - (1, 6, 6, 0, 0, 4)
 - Tackle: 35 Water Gun: 25 Mud Shot: 15
 
@@ -129,7 +144,12 @@ glitch id: 0x3110 targets 02330000 (Box 12 slot 13-14)
 - Tackle: 35 Water Gun: 25 Mud Shot: 11
 
 ## Brendan 3
-- Mud Shot, !Mud Shot/!Tackle, !Mud Shot/!Tackle, !Tackle
+- Marshtomp is 19 at start
+- Slugma Mud Shot
+- Grovyle 20 Jolly (0)/(12) Absorb, Tackle!/Mud Shot!, !Mud Shot/!Tackle
+- Wingull !Tackle
+- Need [15,28] before at level 19
+- Need [17,30] after at level 20
 - (1, 6, 6, 1, 0, 11)
 - Tackle: 33 Water Gun: 25 Mud Shot: 9
 
@@ -154,7 +174,7 @@ glitch id: 0x3110 targets 02330000 (Box 12 slot 13-14)
 - Tackle: 32 Water Gun: 22 Mud Shot: 8
 
 ## Wattson
-- Mud Shot x 3, Mud Shot!
+- Mud Shot x3, Mud Shot!
 - (2, 6, 6, 6, 0, 16)
 - Tackle: 32 Water Gun: 22 Mud Shot: 4
 
@@ -185,10 +205,13 @@ glitch id: 0x3110 targets 02330000 (Box 12 slot 13-14)
 - Tackle: 31 Water Gun: 13 Mud Shot: 3
 
 ## Maxie
+- Mightyena 24 Rash (0)/(18) (Bite)
 - Water Gun x 3
 - +3 AT, +1 SA, +1 SP
 - (2, 16, 7, 11, 0, 19)
-- Take a Bite from Mightyena to have 10 health at level 25
+- 13+17, 13+21, 22+17, 22+21
+- Need [30,43] health before Bite at level 25
+- Need [13,22] health after Bite at level 25
 - Tackle: 30 Water Gun: 10 Mud Shot: 3
 
 ## Flannery
@@ -196,7 +219,32 @@ glitch id: 0x3110 targets 02330000 (Box 12 slot 13-14)
 - +1 AT, +2 DE, +3 SA
 - pick up 2nd protein
 - (2, 17, 9, 14, 0, 19)
+- Need [20, 29] after at level 28
 - Tackle: 30 Water Gun: 7 Mud Shot: 2
+
+- (2, 13, 9, 14, 0, 19) 1 solrock
+- (3, 13, 9, 14, 0, 20) accuracy
+- (6, 13, 9, 14, 0, 20) defense
+- (6, 15, 9, 14, 0, 20) strength
+- (9, 15, 9, 15, 0, 24) norman
+- (10, 15, 10, 17, 0, 26) r&d
+- (10, 16, 10, 17, 0, 26) poochyena
+- (11, 16, 10, 17, 0, 26) wurmple
+- (21, 6, 10, 17, 0, 26) hp up & kelpsy
+
+## Accuracy Room
+- Marshtomp is level 28
+- Delcatty 26 Serious (0)/(31) Water Gun!, Feint Attack, Water Gun!/Mud Shot!
+- Need [70,79] at start at level 28
+- Need [59,70] after at level 28
+- +1HP, +1SP
+- (3, 13, 9, 14, 0, 20)
+
+## Defense Room
+- Marshtomp is level 28
+- Wigglytuff 26 Hardy (0)/(31) Tackle, Defense Curl, Mud Shot!
+- +3HP
+- (6, 13, 9, 14, 0, 20)
 
 ## Speed Room
 - Water Gun!, Water Gun!
@@ -217,7 +265,13 @@ glitch id: 0x3110 targets 02330000 (Box 12 slot 13-14)
 - Tackle: 28 Water Gun: 5 Mud Shot: 0
 
 ## Norman
-- Water Gun! x5
+- Spinda 27 Bashful (0)/(24) (Facade x2)
+- Vigoroth 27 Sassy (0)/(24)
+- Linoone 29 Lax (0)/(24)
+- Slaking 31 Bashful (0)/(30) (Feint Attack)
+- Need [62,73] at start at level 29
+- Need [22,25] health at level 30
+- 2 X. SpAttack, Water Gun!x3, Water Gun, Water Gun!
 - +3 HP, +1 SA, +4 SP
 - (5, 19, 9, 16, 0, 25)
 - Tackle: 28 Water Gun: 0 Mud Shot: 0
@@ -266,17 +320,14 @@ AT-HP SP-DE SD-SA
 ## Move ACE
 1. Glitch move `0x3110` targets 02330000 (Box 12 slot 14).
 - Bootstrap: 1f zz yy xx ww ff targets address wwxxyyzz
-- Bootstrap: 1f 50 00 33 02 ff (Box 12 slot 14/15) (まっ ぉい)
+- Bootstrap: 1f 50 00 33 02 ff (Box 12 slot 14/15) (まっ ぉい)  
 2. +1 pokemon jumps (B+15) are possible and minimal.
 3. ARM instructions fit 1 instruction per pokemon.
 4. Use the high registers to avoid clobbering. (DO NOT use r0)
 
 ## TODO
 - Faster alignment
-- TAS alternate route (in progress)
 - Code improvements
-- Petalburg pathing & Ralts fight - Done
-- Get berries from patch instead of master - Done
 
 ## Box Name Input
 - Bootstrap: 1F 09 18 03 02 FF (Box 1 name; THUMB) (まけねうい)
@@ -365,6 +416,28 @@ STB r1,[r6+1]         E4C61001 # write keys
 AND r1,#0x300         E2110C03 # Z=L&R
 STREQ r0,[r0]         04000130 # REG_KEYINPUT
 LDRNET r0,[pc-0x148]  143F0148 # pseudo-BNE
+```
+
+## ARM Box Names (5 Boxes)
+- Box names start around 02071800
+- ACE Vector is 0206FEFE
+```
+box_01: ()
+mov r6,pc             E1A0600F
+ldr! r5, [r6,#32]     E5B65020 # r5=REG_KEYINPUT, r6+=0x20
+box_02: ()
+swils #5              9F0500FF # C=0 or Z=1
+ldr r1,[r5]           E5951000 # r1=keys
+box_03: ()
+                      0000FF00
+stb! r1, [r6,#1]      E4C61001 # write keys, r6+=1
+box_04: ()
+                      BFFF0000
+tsts r1,#0x300        E3110E30 # Z=L&R
+                      FF000000
+box_05: ()
+ldrne! r0,[pc-#28]    143F0024 # pseudo-BNE to swi
+                      04000130 # REG_KEYINPUT
 ```
 
 ## JPN Sprite ACE
