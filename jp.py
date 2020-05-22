@@ -59,9 +59,7 @@ def species_corruptible(pid: int) -> bool:  # Whether corruption swaps EVs and s
 def mudkip_key(t):  # Key for ranking Mudkip PIDs
     i, pid, ivs = t
     nature = pid % 25
-    if nature == 17:  # Quiet
-        nature = 0
-    elif nature == 16:  # Mild
+    if nature == 16:  # Mild
         nature = 1
     elif nature == 19:  # Rash
         nature = 0
@@ -83,6 +81,7 @@ def glitch_mudkip(seed, otId, cycle, limit=600):  # Print good mudkip candidates
     for i, pid, ivs in candidates[:10]:
         ivs = ', '.join(f'{iv:2d}' for iv in ivs)
         print(f'{i+cycle+inp_offset:5d} {pid:08x} {r_nature[pid % 25]:7} {ivs}')
+    return candidates[0]
 
 
 def male_mons(seed, frame=0, limit=1000, threshold=127):  # Yield Wally's Ralts
@@ -174,18 +173,6 @@ def pomeg_corrupt(addr, pid=0, tid=0):
 # Cycle PID      Nature  HP  AT  DE  SA  SD  SP
 #  8688 81ee947c rash    22, 30,  2, 30, 10, 27
 
-# Seed: bda0398b->5B433AA2 ID: 71dd bda071dd
-# Cycle PID      Nature  HP  AT  DE  SA  SD  SP
-#  8751 08bb2be0 quiet    8, 29,  8, 31, 22, 29
-
-# Seed: af69cc70->7AF68C23 ID: d18a af69d18a
-# Cycle PID      Nature  HP  AT  DE  SA  SD  SP
-#  8836 bfa38d48 quiet    7, 24, 19, 31,  4, 12
-
-# Seed: 818b6421->73621080 ID: 71e3 818b71e3
-# Cycle PID      Nature  HP  AT  DE  SA  SD  SP
-#  9162 24558fdf quiet    8, 25, 12, 30,  4, 12
-
 # Seed: d1e63191->A943A930 ID: 88d3 d1e688d3
 # Cycle PID      Nature  HP  AT  DE  SA  SD  SP
 #  8951 2b420c53 rash    22, 28, 11, 28, 31,  7
@@ -198,33 +185,58 @@ def pomeg_corrupt(addr, pid=0, tid=0):
 # Cycle PID      Nature  HP  AT  DE  SA  SD  SP
 #  8839 89ec0772 rash    26, 26, 27, 30,  1, 31
 
-# Seed: 26e7ca26->2FAD06A1 ID: 41b0 26e741b0
-# Cycle PID      Nature  HP  AT  DE  SA  SD  SP
-#  8970 16914024 quiet    8, 18,  6, 31, 31,  0
+# Seed: 937cc3e8->3D407A3B ID: cbc2 937ccbc2
+# 8621 2807214c mild    21, 30, 27, 30, 16,  4
+
+
+def find_best_tid():
+    global print
+
+    print('TID  Cycle PID      Nature  HP  AT  DE  SA  SD  SP')
+    old_print, print = print, lambda *args: None
+    best = None
+    for initial in tried_tids:
+        for off in range(-1, 1+1):
+            tid = initial + off
+            if tid in tried_tids:
+                continue
+            seed = next(seeds(tid, 590))
+            otId = ((seed >> 16) << 16) | tid
+            new_best = glitch_mudkip(seed, otId, 0)
+            i, pid, ivs = new_best
+            ivs = ', '.join(f'{iv:2d}' for iv in ivs)
+            old_print(f'{tid:04X} {i:5d} {pid:08x} {r_nature[pid % 25]:7} {ivs}')
+            if best is None:
+                best = new_best
+                continue
+            l = [best, new_best]
+            l.sort(key=mudkip_key)
+            new_best = l[0]
+            if best != new_best:
+                old_print('^')
+            best = new_best
+    print = old_print
 
 
 if __name__ == '__main__':
-    # tried_tids = {0x0153, 0X283E, 0x71dd, 0xb5c8, 0x0331, 0x4c85, 0x7d5d, 0xcbce,  # original; No extra buttons
-    #               0x0670, 0x4ba3, 0x88cd, 0xd18a, 0x1ac9, 0x640d, 0xb2c1, 0x015c,
-    #               0x71e3, 0xb5ce, 0x0337, 0x4c7b, 0x7d63, 0xcbc4, 0x0666, 0x4ba9,  # l
-    #               0x88D3, 0xD190, 0x1ACF, 0x6413, 0xb2c7, 0x0152, 0x41b0, 0x8a3e,
-    #               0x71e2, 0xb5c9, }
-    # cycle = 2636
-    # seed = 0xb267eef8
-    # tid = 0x0152
-    # test_seed = next(seeds(tid, 590))
-    # seed = test_seed
-    # if tid in tried_tids:
-    #     print(f'TID 0x{tid:04X} already tried!')
-    #     quit()
-    # otId = ((seed >> 16) << 16) | tid
-    # seed2 = list(seeds(seed, limit=2))[-1]
-    # print(f'Seed: {seed:08x}->{seed2:08X} ID: {tid:04x} {otId:08x}')
-    # glitch_mudkip(seed, otId, cycle)
-    ralts_seek(0xF705D761, 30085)
-    # zigzagoon 29530 17057853 lonely (1, 29, 13, 31, 20, 10)
-    # ralts 30149 ab396296 lonely (0, 20, 5, 5, 23, 9)
+    tried_tids = {0x0153, 0X283E, 0x71dd, 0xb5c8, 0x0331, 0x4c85, 0x7d5d, 0xcbce,  # No extra buttons
+                  0x0670, 0x4ba3, 0x88cd, 0xd18a, 0x1ac9, 0x640d, 0xb2c1, 0x015c,
+                  0x71e3, 0xb5ce, 0x0337, 0x4c7b, 0x7d63, 0xcbc4, 0x0666, 0x4ba9,  # l
+                  0x88D3, 0xD190, 0x1ACF, 0x6413, 0xb2c7, 0x0152, 0x41b0, 0x8a3e,
+                  0x71e2, 0xb5c9, 0x0330, 0x4c86, 0xcbc9, 0x066f, 0x4ba8, 0x88ce,  # L&R
+                  0xD184, 0x1aca, 0xb2c2, 0x0155, 0x41a3, 0x8a3b, 0xd247, 0x1b9f,
+                  0x71EC, 0xB5C4, 0x032C, 0x4C7D, 0x7d64}  # L&R&S
+    cycle, seed, tid = (2628, 0x937cc3e8, 0xcbc2)
+    test_seed = next(seeds(tid, 590))
+    seed = test_seed
+    if tid in tried_tids:
+        print(f'TID 0x{tid:04X} already tried!')
+        quit()
+    otId = ((seed >> 16) << 16) | tid
+    seed2 = list(seeds(seed, limit=2))[-1]
+    print(f'Seed: {seed:08x}->{seed2:08X} ID: {tid:04x} {otId:08x}')
+    glitch_mudkip(seed, otId, cycle)
+
     # 616 frames between
-    # diff is 29530-29469=61
-    print(30149-616)
-    wally_zigzagoon(0x97C74D59, 29469)
+    # diff is
+    # print(30149-616)

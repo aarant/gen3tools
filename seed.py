@@ -242,7 +242,6 @@ def nocrit_seek(seed, frame=0, limit=10):  # For tutorial battles
         print(f'{base:08x}:{dmg:03d} {i}', end=' ')
         if dmg == 100:
             print()
-            break
         i += 1
     print()
 
@@ -259,5 +258,4 @@ gender_thresholds = {'1:7': 225, '1:3': 191, '1:1': 127, '3:1': 63, '7:1': 31}
 if __name__ == "__main__":
     import doctest
     doctest.testmod()
-    # nocrit_seek(0x5F91231A, limit=200)
-    nocrit_seek(0x57393FDF, limit=200)
+    nocrit_seek(0x9649A84C, limit=100)
