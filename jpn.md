@@ -1,6 +1,6 @@
 # Emerald (J) TAS info
-ID: f342283e
-Mudkip: 8688 81ee947c rash (22, 30, 2, 30, 10, 27)
+ID: 937ccbc2
+Mudkip: 8621 2807214c mild  (21, 30, 27, 30, 16, 4)
 trainer: そ  v EA00000F B+15
 glitch id: 0x3110 targets 02330000 (Box 12 slot 13-14)
 
@@ -98,7 +98,7 @@ glitch id: 0x3110 targets 02330000 (Box 12 slot 13-14)
 
 ## Aqua Grunt
 - !Tackle, !Tackle, !Tackle
-- Poochyena outspeeds if Mudkip is Brave, Relaxed, Quiet or Sassy
+- Poochyena outspeeds if Mudkip is Brave, Relaxed, Quiet or Sassy, or has less than 6 Speed IVs
 - (0, 2, 0, 0, 0, 2)
 
 ## Youngster Josh
@@ -110,9 +110,10 @@ glitch id: 0x3110 targets 02330000 (Box 12 slot 13-14)
 - (0, 2, 4, 0, 0, 2)
 
 ## Catch Abra
-- Must have at least 23 HP IVs
+- Must have at least 7-8,16,23-24 HP IVs
 
 ## Hiker Devan
+- Water Gun x2
 - (0, 2, 6, 0, 0, 2)
 
 ## Aqua Grunt
@@ -148,7 +149,7 @@ glitch id: 0x3110 targets 02330000 (Box 12 slot 13-14)
 - Slugma Mud Shot
 - Grovyle 20 Jolly (0)/(12) Absorb, Tackle!/Mud Shot!, !Mud Shot/!Tackle
 - Wingull !Tackle
-- Need [23,42] after at level 19
+- Need [14,32] after at level 19
 - (1, 6, 6, 1, 0, 11)
 - Tackle: 33 Water Gun: 25 Mud Shot: 9
 
@@ -209,8 +210,8 @@ glitch id: 0x3110 targets 02330000 (Box 12 slot 13-14)
 - +3 AT, +1 SA, +1 SP
 - (2, 16, 7, 11, 0, 19)
 - 13+17, 13+21, 22+17, 22+21
-- Need [38,57] health before Bite at level 25
-- Need [16,30] health after Bite at level 25
+- Need [30,48] health before Bite at level 25
+- Need [13,27] health after Bite at level 25
 - Tackle: 30 Water Gun: 10 Mud Shot: 3
 
 ## Flannery
@@ -218,7 +219,7 @@ glitch id: 0x3110 targets 02330000 (Box 12 slot 13-14)
 - +1 AT, +2 DE, +3 SA
 - pick up 2nd protein
 - (2, 17, 9, 14, 0, 19)
-- Need [24,38] after at level 28
+- Need [21,35] after at level 28
 - Tackle: 30 Water Gun: 7 Mud Shot: 2
 
 - (2, 13, 9, 14, 0, 19) 1 solrock
@@ -234,8 +235,8 @@ glitch id: 0x3110 targets 02330000 (Box 12 slot 13-14)
 ## Accuracy Room
 - Marshtomp is level 28
 - Delcatty 26 Serious (0)/(31) Water Gun!, Feint Attack, Water Gun!/Mud Shot!
-- Need [74,88] at start at level 28
-- Need [61,73] after at level 28
+- Need [71,85] at start at level 28
+- Need [60,71] after at level 28
 - +1HP, +1SP
 - (3, 13, 9, 14, 0, 20)
 
@@ -268,8 +269,8 @@ glitch id: 0x3110 targets 02330000 (Box 12 slot 13-14)
 - Vigoroth 27 Sassy (0)/(24)
 - Linoone 29 Lax (0)/(24)
 - Slaking 31 Bashful (0)/(30) (Feint Attack)
-- Need [64,76] at start at level 29
-- Need [25,29] health at level 30
+- Need [62,73] at start at level 29
+- Need [23,26] health at level 30
 - 2 X. SpAttack, Water Gun!x3, Water Gun, Water Gun!
 - +3 HP, +1 SA, +4 SP
 - (5, 19, 9, 16, 0, 25)
