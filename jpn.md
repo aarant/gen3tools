@@ -1,6 +1,6 @@
 # Emerald (J) TAS info
-ID: 937ccbc2
-Mudkip: 8621 2807214c mild  (21, 30, 27, 30, 16, 4)
+ID: cd74d187
+Mudkip: 8752 89613c19 rash    30, 31, 16, 28,  1, 10
 trainer: そ  v EA00000F B+15
 glitch id: 0x3110 targets 02330000 (Box 12 slot 13-14)
 
@@ -48,6 +48,8 @@ glitch id: 0x3110 targets 02330000 (Box 12 slot 13-14)
 | gBattlerTarget | 02023EB0 |
 | gBattleMons | 02023D28 | 0x58 large, 0xC is moves
 | ZeroMonData: | 08067670 |
+| daycare | +0x2F9C |
+| step counter | daycare+0x1b0 |
 
 ## New Route:
 - Mudkip: TBD
@@ -111,6 +113,7 @@ glitch id: 0x3110 targets 02330000 (Box 12 slot 13-14)
 
 ## Catch Abra
 - Must have at least 7-8,16,23-24 HP IVs
+- Abra: 707FE208 Adamant (15, 2, 26, 21, 21, 5)
 
 ## Hiker Devan
 - Water Gun x2
@@ -149,44 +152,44 @@ glitch id: 0x3110 targets 02330000 (Box 12 slot 13-14)
 - Slugma Mud Shot
 - Grovyle 20 Jolly (0)/(12) Absorb, Tackle!/Mud Shot!, !Mud Shot/!Tackle
 - Wingull !Tackle
-- Need [14,32] after at level 19
+- Need [18,] after at level 19
 - (1, 6, 6, 1, 0, 11)
 - Tackle: 33 Water Gun: 25 Mud Shot: 9
 
 ## Triathlon Alyssa
-- Water Gun!
+- Mud Slap
 - (1, 6, 6, 2, 0, 11)
-- Tackle: 33 Water Gun: 24 Mud Shot: 9
+- Tackle: 33 Water Gun: 25 Mud Shot: 9
 
 ## Psychic Edward
 - Tackle
 - (1, 6, 6, 3, 0, 11)
-- Tackle: 32 Water Gun: 24 Mud Shot: 9
+- Tackle: 32 Water Gun: 25 Mud Shot: 9
 
 ## Wally
-- Water Gun
+- Mud Shot
 - (1, 6, 6, 4, 0, 11)
-- Tackle: 32 Water Gun: 23 Mud Shot: 9
+- Tackle: 32 Water Gun: 25 Mud Shot: 8
 
 ## Youngster Ben
 - Water Gun!, Mud Shot
 - (2, 6, 6, 4, 0, 12)
-- Tackle: 32 Water Gun: 22 Mud Shot: 8
+- Tackle: 32 Water Gun: 24 Mud Shot: 7
 
 ## Wattson
 - Mud Shot x3, Mud Shot!
 - (2, 6, 6, 6, 0, 16)
-- Tackle: 32 Water Gun: 22 Mud Shot: 4
+- Tackle: 32 Water Gun: 24 Mud Shot: 3
 
 ## Hiker Lucas
 - Water Gun, Water Gun
-- 1st Protein
 - (2, 6, 7, 7, 0, 16)
-- Tackle: 32 Water Gun: 20 Mud Shot: 4
+- Tackle: 32 Water Gun: 22 Mud Shot: 3
 
-# 3 Solrock
-- (2, 12, 7, 7, 0, 16)
-- Tackle: 32 Water Gun: 17 Mud Shot: 4
+# Solrock
+- Water Gun
+- (2, 8, 7, 7, 0, 16)
+- Tackle: 32 Water Gun: 21 Mud Shot: 3
 
 ## Verdanturf
 - Fluffy Tail, 2-3 X-Special, Super Potion
@@ -195,32 +198,32 @@ glitch id: 0x3110 targets 02330000 (Box 12 slot 13-14)
 ## Magma Grunts
 - Mud Shot, Tackle!
 - +1 SA, +1 SP
-- (2, 12, 7, 8, 0, 17)
-- Tackle: 31 Water Gun: 17 Mud Shot: 3
+- (2, 8, 7, 8, 0, 17)
+- Tackle: 31 Water Gun: 21 Mud Shot: 2
 
 ## Tabitha
 - Water Gun, Water Gun!, Water Gun!/Tackle!, Water Gun
 - +1 AT, +2 SA, +1 SP
-- (2, 13, 7, 10, 0, 18)
-- Tackle: 31 Water Gun: 13 Mud Shot: 3
+- (2, 9, 7, 10, 0, 18)
+- Tackle: 31 Water Gun: 17 Mud Shot: 2
 
 ## Maxie
 - Mightyena 24 Rash (0)/(18) (Bite)
 - Water Gun x 3
 - +3 AT, +1 SA, +1 SP
-- (2, 16, 7, 11, 0, 19)
+- (2, 12, 7, 11, 0, 19)
 - 13+17, 13+21, 22+17, 22+21
-- Need [30,48] health before Bite at level 25
-- Need [13,27] health after Bite at level 25
-- Tackle: 30 Water Gun: 10 Mud Shot: 3
+- Need [34,] health before Bite at level 25
+- Need [13,] health after Bite at level 25
+- Tackle: 30 Water Gun: 14 Mud Shot: 2
 
 ## Flannery
-- Mud Shot, Water Gun x2, Water Gun!
+- Water Gun x2, Water Gun!
 - +1 AT, +2 DE, +3 SA
 - pick up 2nd protein
-- (2, 17, 9, 14, 0, 19)
-- Need [21,35] after at level 28
-- Tackle: 30 Water Gun: 7 Mud Shot: 2
+- (2, 13, 9, 14, 0, 19)
+- Need [21,] after at level 28
+- Tackle: 30 Water Gun: 10 Mud Shot: 2
 
 - (2, 13, 9, 14, 0, 19) 1 solrock
 - (3, 13, 9, 14, 0, 20) accuracy
@@ -236,15 +239,17 @@ glitch id: 0x3110 targets 02330000 (Box 12 slot 13-14)
 - Marshtomp is level 28
 - Delcatty 26 Serious (0)/(31) Water Gun!, Feint Attack, Water Gun!/Mud Shot!
 - Need [71,85] at start at level 28
-- Need [60,71] after at level 28
+- Need [57,68] after at level 28
 - +1HP, +1SP
 - (3, 13, 9, 14, 0, 20)
+- Tackle: 30 Water Gun: 8 Mud Shot: 2
 
 ## Defense Room
 - Marshtomp is level 28
 - Wigglytuff 26 Hardy (0)/(31) Tackle, Defense Curl, Mud Shot!
 - +3HP
 - (6, 13, 9, 14, 0, 20)
+- Tackle: 29 Water Gun: 8 Mud Shot: 1
 
 ## Speed Room
 - Water Gun!, Water Gun!
@@ -261,29 +266,71 @@ glitch id: 0x3110 targets 02330000 (Box 12 slot 13-14)
 ## Strength Room
 - Tackle, Mud Shot!
 - +2 AT
-- (2, 19, 9, 15, 0, 21)
-- Tackle: 28 Water Gun: 5 Mud Shot: 0
+- (2, 15, 9, 15, 0, 21)
+- Tackle: 28 Water Gun: 8 Mud Shot: 0
 
 ## Norman
 - Spinda 27 Bashful (0)/(24) (Facade x2)
 - Vigoroth 27 Sassy (0)/(24)
 - Linoone 29 Lax (0)/(24)
 - Slaking 31 Bashful (0)/(30) (Feint Attack)
-- Need [62,73] at start at level 29
-- Need [23,26] health at level 30
+- Need [60,71] at start at level 29
+- Need [24,27] health at level 29
+- Need [27,30] health at level 30
 - 2 X. SpAttack, Water Gun!x3, Water Gun, Water Gun!
 - +3 HP, +1 SA, +4 SP
-- (5, 19, 9, 16, 0, 25)
-- Tackle: 28 Water Gun: 0 Mud Shot: 0
+- (9, 15, 9, 15, 0, 24)
+- Tackle: 28 Water Gun: 3 Mud Shot: 0
+
+# Patch EVs
+- Fight 1 Wurmple, catch 1 Poochyena
+- (10, 15, 9, 15, 0, 24)
+- Teach Surf, use HP Up (Abra)
+- Reorder party as: Poochyena Abra Marshtomp
 
 ## Mauville City Redux
 - HP Up 2 Route 111
 - Head east to Route 119
 
 ## Rose & Deandre
+- Roselia 14 Bashful (0)/(0) Absorb/Growth/Poison Sting/Stun Spore
+- Absorb 10,11,12,20
+- Poison String 8,9,10,16,18,20
+- Zigzagoon 14 Modest (0)/(0) Growl/Tail Whip/Headbutt/Sand Attack
+- Headbutt 18,19,20,21
+- Roselia 14 Rash (0)/(0) Absorb/Growth/Poison Sting/Stun Spore
+- Aron 14 Hasty (0)/(0) Harden/Mud Slap/Headbutt/Metal Claw
+- Shroomish 14 Gentle (0)/(0) Absorb/Tackle/Stun Spore/Leech Seed
+- Tackle 6,7,8,12,14,16
+- Absorb 5,6,7,10,12,14
+- Electrike 14 Quiet (0)/(0) Tackle/Thunder Wave/Leer/Howl
+- Tackle 6,7,8,12,14,16
 - +1 HP, +1 DE, +2 SA, +2 SP
+- Abra gains 9 HP
+- 21 HP at level 7
+- Electrike 8-10
+- 15, good for 56 steps
 - (6, 19, 10, 18, 0, 27)
+- 7, 8, 9, 13, 15, 17
+- 4, 6, 8
+- 17, 15, 13 damage
+- Absorb
+- 6, 7, 8, 11, 13, 15
+- 2, 4, 6
+- 19, 17, 15 damage
+- Electrike
+- 7, 8, 9, 13, 15, 17
+- 4, 6, 8
+- 17, 15, 13 damage
+- 12
 - Abra: 1 HP EVs
+
+## Hatching
+- Slateport HP Up adds 198 steps
+- Verdanturf Late adds 321 steps
+- Route 111 adds 120 steps
+- ends on 0x36
+- without verdanturf: f5
 
 ## Route 123
 - Pomeg berries in left patch
@@ -422,22 +469,22 @@ LDRNET r0,[pc-0x148]  143F0148 # pseudo-BNE
 - Box names start around 02071800
 - ACE Vector is 0206FEFE
 ```
-box_01: ()
-mov r6,pc             E1A0600F
-ldr! r5, [r6,#32]     E5B65020 # r5=REG_KEYINPUT, r6+=0x20
-box_02: ()
-swils #5              9F0500FF # C=0 or Z=1
-ldr r1,[r5]           E5951000 # r1=keys
-box_03: ()
+box_01: (そタッmみっ♀q)
+mov r6,pc             E1 A0 60 0F
+ldr! r5, [r6,#32]     E5 B6 50 20 # r5=REG_KEYINPUT, r6+=0x20
+box_02: ( おポ たドq )
+swils #5              9F 05 00 FF # C=0 or Z=1
+ldr r1,[r5]           E5 95 10 00 # r1=keys
+box_03: (  あたLp  )
                       0000FF00
-stb! r1, [r6,#1]      E4C61001 # write keys, r6+=1
-box_04: ()
+stb! r1, [r6,#1]      E4 C6 10 01 # write keys, r6+=1
+box_04: (EぃせちO   )
                       BFFF0000
-tsts r1,#0x300        E3110E30 # Z=L&R
+tsts r1,#0x300        E3 11 0E 30 # Z=L&R
                       FF000000
-box_05: ()
-ldrne! r0,[pc-#28]    143F0024 # pseudo-BNE to swi
-                      04000130 # REG_KEYINPUT
+box_05: (や ぜとぃあ え)
+ldrne! r0,[pc-#28]    14 3F 00 24 # pseudo-BNE to swi
+                      04 00 01 30 # REG_KEYINPUT
 ```
 
 ## JPN Sprite ACE

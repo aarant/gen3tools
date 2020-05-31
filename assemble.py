@@ -1,3 +1,4 @@
+""" Assemble and link a custom payload at an address """
 import subprocess
 import os
 import sys

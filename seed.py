@@ -1,3 +1,4 @@
+""" Gen3 RNG tools. """
 from itertools import islice
 
 from pokemon import BoxMon

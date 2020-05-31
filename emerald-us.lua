@@ -1,4 +1,4 @@
--- HUD for Pokemon Emerald (J)
+-- HUD for Pokemon Emerald (U)
 final_inp = 6000000 -- final input frame
 
 function showState()

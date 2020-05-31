@@ -50,8 +50,8 @@ function showState()
     else -- Miss
       gui.text(0, 14*8, "Miss", 0xffde6b5a)
     end
-    addr = memory.read_u32_le(0x007918, "IWRAM")
-    gui.text(0, 14*2, string.format("Addr: %08X", addr))
+    -- addr = memory.read_u32_le(0x007918, "IWRAM")
+    -- gui.text(0, 14*2, string.format("Addr: %08X", addr))
     -- battler = memory.readbyte(0x023d08)
     -- buffer = 0x02022D08+0x200*battler
     -- battleMons = 0x02023d28+0x58*battler
@@ -68,6 +68,9 @@ function showState()
     gui.text(0, 14*4, string.format("ID: %04X %08X", gTrainerId, otId))
     mudkipPID = memory.read_u32_le(0x024190, "EWRAM")
     gui.text(0, 14*5, string.format("Mudkip: %08X", mudkipPID))
+    gSaveBlock1 = bit.band(memory.read_u32_le(0x5aec, "IWRAM"), 0xFFFFFF)
+    steps = memory.readbyte(gSaveBlock1+0x2F9C+0x1b0, "EWRAM")
+    gui.text(0, 14*6, string.format("Steps: %02X", steps))
     -- addr = memory.read_u32_le(0x007918, "IWRAM")
     -- gui.text(0, 14*4, string.format("Addr: %08X", addr))
   end

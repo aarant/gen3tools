@@ -1,3 +1,4 @@
+""" Gen 4 BoxPokemon API """
 from ctypes import LittleEndianStructure, Union, c_uint8 as u8, c_uint16 as u16, c_uint32 as u32
 
 # shift -> block order l where ABCD is 0 1 2 3

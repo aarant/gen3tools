@@ -1,4 +1,5 @@
-""" Class to represent and manipulate box pokemon. """
+""" Class to represent and manipulate box pokemon (Gen 3). """
+from itertools import permutations
 from ctypes import LittleEndianStructure, Union, c_uint8 as u8, c_uint16 as u16, c_uint32 as u32
 
 
@@ -196,7 +197,6 @@ def load_pk3(path: str):  # Load a PKHeX .pk3 pokemon
     return BoxMon.from_pk3(buffer)
 
 
-
 # Maps personalities to substruct order lists l
 # 0 1 2 3
 # G A E M
@@ -205,6 +205,9 @@ perms = {0: [0, 1, 2, 3], 1: [0, 1, 3, 2], 2: [0, 2, 1, 3], 3: [0, 3, 1, 2], 4: 
          6: [1, 0, 2, 3], 7: [1, 0, 3, 2], 8: [2, 0, 1, 3], 9: [3, 0, 1, 2], 10: [2, 0, 3, 1], 11: [3, 0, 2, 1],
          12: [1, 2, 0, 3], 13: [1, 3, 0, 2], 14: [2, 1, 0, 3], 15: [3, 1, 0, 2], 16: [2, 3, 0, 1], 17: [3, 2, 0, 1],
          18: [1, 2, 3, 0], 19: [1, 3, 2, 0], 20: [2, 1, 3, 0], 21: [3, 1, 2, 0], 22: [2, 3, 1, 0], 23: [3, 2, 1, 0]}
+# This is equivalent to the 24 lexicographical permutations of [0, 1, 2, 3] (with the mapping reversed):
+perms2 = {k: [i for i, s in sorted(enumerate(p), key=lambda t: t[1])] for k, p in enumerate(permutations([0, 1, 2, 3]))}
+assert(perms == perms2)
 
 # maps in-game characters to bytes
 name_map = {'A': 0xBB, 'B': 0xBC, 'C': 0xBD, 'D': 0xBE, 'E': 0xBF, 'F': 0xC0, 'G': 0xC1, 'H': 0xC2, 'I': 0xC3,

@@ -5,6 +5,9 @@
 
 @ Universal data writer + SR intercepter
 
+ARMBootstrap: @ Jump into THUMB code
+  .4byte 0xE28F0001 @ add pc,#1
+  .4byte 0xE12FFF10 @ bx r0
 WarpJP: @ 02031834
   ldr r0, warpDest
   ldr r1, hofWarp
@@ -17,8 +20,8 @@ WarpJP: @ 02031834
   ldr r1, mainAddr
   adds r4, r1, #1
   ldr r2, size
-  swi 11 @ CpuSet
-  mov lr, r4
+  swi 11 @ Copy custom main to IWRAM
+  mov lr, r4  @ Arrange CB2_LoadMap to return to CustomMain
   ldr r1, CB2_LoadMap
   bx r1
 .align 2

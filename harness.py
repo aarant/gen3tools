@@ -1,3 +1,4 @@
+""" mGBA Emerald ACE Vector fuzzing harness. """
 import os
 import sys
 import re
@@ -108,6 +109,7 @@ def fuzz_species(d, species=0x611):
 # tAnim in 03005E28+12=03005E34
 # stored at 0806EDD4
 # tAnimId = u8 at 0x0833155C+species-1
+
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:
