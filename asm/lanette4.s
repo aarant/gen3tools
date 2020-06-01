@@ -2,15 +2,22 @@
 .syntax unified
 .thumb
 
-.align 2
-monAddr: .4byte 0x02024190
-.align 2
-BlankMon:
-  ldr r4, ZeroMonData
-  adr r0, ZeroMonData
-  subs r0, 16 @ monAddr
-  ldr r0, [r0]
-  bx r4
+BattlePrint: @ Print text on main window
+  ldr r4, BattlePutTextOnWindow
+  adr r0, battleText
+  movs r1, 0x80 @ windowId 0
   bx r4
 .align 2
-ZeroMonData: .4byte 0x08067670+1
+rngValue: .4byte 0x11223344
+.align 2
+PatchRng:
+  ldr r0, rngAddr
+  adr r1, rngAddr
+  subs r1, 16 @ rngValue
+  ldr r1, [r1]
+  str r1, [r0]
+  bx lr
+.align 2
+rngAddr: .4byte 0x03005ae0
+BattlePutTextOnWindow: .4byte 0x0814FA04+1
+battleText: .string "TASVideos  merrp \nwants to battle!"

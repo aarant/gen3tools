@@ -469,22 +469,22 @@ LDRNET r0,[pc-0x148]  143F0148 # pseudo-BNE
 - Box names start around 02071800
 - ACE Vector is 0206FEFE
 ```
-box_01: (そタッmみっ♀q)
-mov r6,pc             E1 A0 60 0F
-ldr! r5, [r6,#32]     E5 B6 50 20 # r5=REG_KEYINPUT, r6+=0x20
-box_02: ( おポ たドq )
-swils #5              9F 05 00 FF # C=0 or Z=1
-ldr r1,[r5]           E5 95 10 00 # r1=keys
-box_03: (  あたLp  )
+box_01: @ (そタッmみっ♀q)
+mov r6,pc             E1A0600F
+ldr! r5, [r6,#32]     E5B65020 @ r5=REG_KEYINPUT, r6+=0x20
+box_02: @ ( おポ たドq )
+swils #5              9F0500FF @ C=0 or Z=1
+ldr r1,[r5]           E5951000 @ r1=keys
+box_03: @ (  あたLp  )
                       0000FF00
-stb! r1, [r6,#1]      E4 C6 10 01 # write keys, r6+=1
-box_04: (EぃせちO   )
+stb! r1, [r6,#1]      E4C61001 @ write keys, r6+=1
+box_04: @ (EぃせちO   )
                       BFFF0000
-tsts r1,#0x300        E3 11 0E 30 # Z=L&R
+tsts r1,#0x300        E3110E30 @ Z=L&R
                       FF000000
-box_05: (や ぜとぃあ え)
-ldrne! r0,[pc-#28]    14 3F 00 24 # pseudo-BNE to swi
-                      04 00 01 30 # REG_KEYINPUT
+box_05: @ (や ぜとぃあ え)
+ldrne! r0,[pc-#28]    143F0024 @ pseudo-BNE to swi
+                      04000130 @ REG_KEYINPUT
 ```
 
 ## JPN Sprite ACE

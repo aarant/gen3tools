@@ -4,6 +4,9 @@
 
 @ Warp into HOF, set A press, and overwrite AgbMain with custom routine
 
+ARMBootstrap: @ Jump into THUMB code
+  .4byte 0xE28F0001 @ add pc,#1
+  .4byte 0xE12FFF10 @ bx r0
 WarpJP:
   ldr r0, warpDest
   ldr r1, hofWarp

@@ -3,67 +3,43 @@
 .thumb
 .include "asm/event.inc"
 
-@ Set up and copy script
+@ Task scanner/interceptor, to preempt THE END soft reset
 
 .align 2
-ScriptSetup: @ Set flags and copy script into ram script
+TaskScan: @ Scan Task list for soft-reset
   push {lr}
-  ldr r0, lanetteFlag
-  ldr r1, FlagClear
-  bl _call_via_r1 @ clear Lanette's flag so she appears
-  adr r0, scriptHeader
-  ldr r4, gSaveBlock1Ptr
-  ldr r4, [r4]
-  ldr r1, saveOffset
-  adds r4, r1 @ ramscript
-  adds r1, r4, #4 @ ramscript *data*
-  movs r2, #7 @ size of bootstrap script
-  swi 11 @ copy bootstrap 0203184E
-  adr r0, CopyScript
-  adds r1, #128
-  ldr r2, scriptSize
-  swi 11 @ place into ram script
-  ldr r1, CalculateRamScriptChecksum
+  ldr r0, gTasks
+  movs r1, #16
+  ldr r2, badTask
+_b2:
+  cmp r1, #0
+  beq _b3
+  ldr r4, [r0]
+  cmp r2, r4
+  beq intercept
+  adds r0, #40 @ each task is 40 bytes
+  subs r1, #1
+  b _b2
+intercept: @ intercept the soft reset
+  ldr r1, ResetTasks
   bl _call_via_r1
-  str r0, [r4] @ store correct checksum
-RestoreMarshtomp:
-  ldr r0, marshtompPID
-  ldr r1, [r0]
-  ldr r4, pidClear
-  bics r1, r4
-  str r1, [r0] @ un-corrupt PID
-  movs r1, r0
-  ldr r4, BoxMonToMon @ restore HP, stats, etc
-  bl _call_via_r4
+  ldr r0, warpDest
+  ldr r1, lanetteWarp
+  str r1, [r0]
+  ldr r1, WarpIntoMap
+  bl _call_via_r1
+  ldr r1, CB2_LoadMap
+  bl _call_via_r1
+_b3:
   pop {r0}
   bx r0
 _call_via_r1:
   bx r1
-_call_via_r4:
-  bx r4
 .align 2
-FlagClear: .4byte 0x0809D040+1
-lanetteFlag: .4byte 0x366
-gSaveBlock1Ptr: .4byte 0x03005aec
-saveOffset: .4byte 0x3728
-marshtompPID: .4byte 0x02024190+200
-pidClear: .4byte 0x40000000
-BoxMonToMon: .4byte 0x08068b44+1
-CalculateRamScriptChecksum: .4byte 0x08098A34+1
-scriptHeader: .byte 0x33, 0x14, 0x02, 0x01
-bootstrap:
-  gotonative 0x02028e49 @ run CopyScript
-  goto 0x0203d000
-
-.align 2
-CopyScript:
-  adr r0, lanetteScript
-  ldr r1, scriptDest
-  ldr r2, scriptSize
-  swi 11 @ place script in fixed position at 0203d000
-  movs r0, #1
-  bx lr
-.align 2
-scriptSize: .4byte 400
-scriptDest: .4byte 0x0203d000
-lanetteScript:
+gTasks: .4byte 0x03005B60
+badTask: .4byte 0x08175BD4+1
+ResetTasks: .4byte 0x080A8818+1
+lanetteWarp: .byte 20, 2, 1, 4
+warpDest: .4byte 0x02031F84
+WarpIntoMap: .4byte 0x08084540+1
+CB2_LoadMap: .4byte 0x08085934+1
