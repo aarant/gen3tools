@@ -12,8 +12,6 @@ WarpJP: @ 02031834
   ldr r0, warpDest
   ldr r1, hofWarp
   str r1, [r0]
-  ldr r1, WarpIntoMap
-  bl _call_via_r1
   ldr r0, stackRoot
   mov sp, r0 @ reset stack
   adr r0, CustomMain
@@ -25,7 +23,7 @@ WarpJP: @ 02031834
   ldr r1, CB2_LoadMap
   bx r1
 .align 2
-hofWarp: .byte 16, 11, 1, 4
+hofWarp: .byte 16, 11, 0, 4
 mainAddr: .4byte 0x030078AC
 size: .4byte 400 @ number of HWORDS
 stackRoot: .4byte 0x03007f00
@@ -77,11 +75,7 @@ _b0:
   beq _b1
   bl _call_via_r1 @ call callback2
 _b1:
-  ldr r1, taskFlag
-  cmp r1, #0
-  beq _b2
   bl TaskScan
-_b2:
   ldr r1, MapMusicMain
   bl _call_via_r1
   ldr r1, WaitForVBlank
@@ -91,15 +85,14 @@ _call_via_r1:
   bx r1
 .align 2
 keyInput: .4byte 0x04000130
-wAddr: .4byte 0x02030079 @ initial write address is 03007944
-taskFlag: .4byte 0 @ set this to 1 when TaskScan has been written
+wAddr: .4byte 0x02030300 @ initial write address is 03007934
 gMain: .4byte 0x03002360
 ReadKeys: .4byte 0x080005E4+1
 MapMusicMain: .4byte 0x080A26B0+1
 WaitForVBlank: .4byte 0x080008AC+1
-warpDest: .4byte 0x02031F84
-WarpIntoMap: .4byte 0x08084540+1
+warpDest: .4byte 0x020256FC
 CB2_LoadMap: .4byte 0x08085934+1
 
 .align 2
 TaskScan: @ Scan Task list for soft-reset
+  bx lr

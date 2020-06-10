@@ -11,11 +11,9 @@ WarpJP:
   ldr r0, warpDest
   ldr r1, hofWarp
   str r1, [r0]
-  ldr r1, WarpIntoMap
-  bl _call_via_r1
   adr r0, CustomMain
   ldr r1, mainAddr
-  ldr r2, size
+  movs r2, #100 @ number of HWORDs
   swi 11 @ CpuSet
   subs r1, #199
   mov lr, r1
@@ -25,10 +23,9 @@ WarpJP:
 hofWarp:
   .byte 16 @ map group
   .byte 11 @ map num
-  .byte 1 @ warp
+  .byte 0 @ warp
   .byte 4
 mainAddr: .4byte 0x030078AC
-size: .4byte 100 @ number of HWORDS
 
 .align 2
 CustomMain: @ 0x030078AC
@@ -51,15 +48,12 @@ _b0:
 _b1:
   ldr r1, MapMusicMain
   bl _call_via_r1
-  ldr r1, WaitForVBlank
-  bl _call_via_r1
+  swi 5 @ WaitForVBlank
   b Loop
 .align 2
 gMain: .4byte 0x03002360
 MapMusicMain: .4byte 0x080A26B0+1
-WaitForVBlank: .4byte 0x080008AC+1
-warpDest: .4byte 0x02031F84
-WarpIntoMap: .4byte 0x08084540+1
+warpDest: .4byte 0x02025704
 CB2_LoadMap: .4byte 0x08085934+1
 .align 1
 _call_via_r1:

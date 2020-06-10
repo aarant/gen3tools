@@ -213,8 +213,7 @@ glitch id: 0x3110 targets 02330000 (Box 12 slot 13-14)
 - +3 AT, +1 SA, +1 SP
 - (2, 12, 7, 11, 0, 19)
 - 13+17, 13+21, 22+17, 22+21
-- Need [34,] health before Bite at level 25
-- Need [13,] health after Bite at level 25
+- Take 21 damage from Mightyena
 - Tackle: 30 Water Gun: 14 Mud Shot: 2
 
 ## Flannery
@@ -238,30 +237,17 @@ glitch id: 0x3110 targets 02330000 (Box 12 slot 13-14)
 ## Accuracy Room
 - Marshtomp is level 28
 - Delcatty 26 Serious (0)/(31) Water Gun!, Feint Attack, Water Gun!/Mud Shot!
-- Need [71,85] at start at level 28
-- Need [57,68] after at level 28
+- Take 14-15 damage
 - +1HP, +1SP
 - (3, 13, 9, 14, 0, 20)
 - Tackle: 30 Water Gun: 8 Mud Shot: 2
 
 ## Defense Room
 - Marshtomp is level 28
-- Wigglytuff 26 Hardy (0)/(31) Tackle, Defense Curl, Mud Shot!
+- Wigglytuff 26 Hardy (0)/(31) Tackle!, Defense Curl, Mud Shot!
 - +3HP
 - (6, 13, 9, 14, 0, 20)
 - Tackle: 29 Water Gun: 8 Mud Shot: 1
-
-## Speed Room
-- Water Gun!, Water Gun!
-- +2 SP
-- (2, 17, 9, 14, 0, 21)
-- Tackle: 30 Water Gun: 5 Mud Shot: 2
-
-## Confusion Room
-- Tackle, Mud Shot!
-- +1 SA
-- (2, 17, 9, 15, 0, 21)
-- Tackle: 29 Water Gun: 5 Mud Shot: 1
 
 ## Strength Room
 - Tackle, Mud Shot!
@@ -274,17 +260,15 @@ glitch id: 0x3110 targets 02330000 (Box 12 slot 13-14)
 - Vigoroth 27 Sassy (0)/(24)
 - Linoone 29 Lax (0)/(24)
 - Slaking 31 Bashful (0)/(30) (Feint Attack)
-- Need [60,71] at start at level 29
-- Need [24,27] health at level 29
-- Need [27,30] health at level 30
+- Need 28 health at Slaking at level 29
 - 2 X. SpAttack, Water Gun!x3, Water Gun, Water Gun!
 - +3 HP, +1 SA, +4 SP
 - (9, 15, 9, 15, 0, 24)
 - Tackle: 28 Water Gun: 3 Mud Shot: 0
 
 # Patch EVs
-- Fight 1 Wurmple, catch 1 Poochyena
-- (10, 15, 9, 15, 0, 24)
+- Fight 1 Wurmple, 1 Poochyena, catch one Poochyena
+- (11, 15, 9, 15, 0, 24)
 - Teach Surf, use HP Up (Abra)
 - Reorder party as: Poochyena Abra Marshtomp
 
@@ -332,37 +316,23 @@ glitch id: 0x3110 targets 02330000 (Box 12 slot 13-14)
 - ends on 0x36
 - without verdanturf: f5
 
-## Route 123
-- Pomeg berries in left patch
-- Last chance to use spinner to advance RNG
-- Reorder: Any Abra Marshtomp
-
-## Route 105/Protein 3
-- Use all vitamins
-- Knock out pokemon, bring Abra to 1 HP, switch to Marshtomp
-- catch and nickname
-- 1F 09 18 03 02 FF (Box 1 name; THUMB) (まけねうい)
-
 ## EV Target
-- Note that move1 is ORed with 0x4000
 AT-HP SP-DE SD-SA
 3110 1b0a 0012
 - (16, 49, 10, 18, 0, 27)
 
 ## PC Visit
 - Name Box 1-2
-- Wingull: Box 12 Slot 14
 - Marshtomp: Box 2 Slot 24
 
 ## Glitzer Popping
-- Use pomeg berry on Abra
+- Use Pomeg Berry on Abra
 - Corrupt PID at: 0202a574
 
 ## ACE Prep
 - Lift & replace Egg, place in party
 - Name Boxes 1-5
-- Enable animations!
-- Align bootstrap at 02330000
+- Hatch Egg
 
 ## Move ACE
 1. Glitch move `0x3110` targets 02330000 (Box 12 slot 14).
@@ -469,19 +439,19 @@ LDRNET r0,[pc-0x148]  143F0148 # pseudo-BNE
 - Box names start around 02071800
 - ACE Vector is 0206FEFE
 ```
-box_01: @ (そタッmみっ♀q)
-mov r6,pc             E1A0600F
+box_01: @ (そタッmダみっ♀q)
+mov r6,pc             91A0600F
 ldr! r5, [r6,#32]     E5B65020 @ r5=REG_KEYINPUT, r6+=0x20
-box_02: @ ( おポ たドq )
-swils #5              9F0500FF @ C=0 or Z=1
-ldr r1,[r5]           E5951000 @ r1=keys
-box_03: @ (  あたLp  )
-                      0000FF00
+box_02: @ (おおポ たドド)
+swils #5              9F0505FF @ C=0 or Z=1
+ldr r1,[r5]           95951000 @ r1=keys
+box_03: @ (いいあたLp)
+                      0202FFFF
 stb! r1, [r6,#1]      E4C61001 @ write keys, r6+=1
-box_04: @ (EぃせちO   )
-                      BFFF0000
-tsts r1,#0x300        E3110E30 @ Z=L&R
-                      FF000000
+box_04: @ (あぃせちて)
+                      01FFFFFF
+tsts r1,#0x300        13110E30 @ Z=L&R
+                      FFFFFFFF
 box_05: @ (や ぜとぃあ え)
 ldrne! r0,[pc-#28]    143F0024 @ pseudo-BNE to swi
                       04000130 @ REG_KEYINPUT

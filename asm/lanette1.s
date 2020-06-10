@@ -7,6 +7,7 @@
 
 .align 2
 TaskScan: @ Scan Task list for soft-reset
+  cmp r0, #0x70
   push {lr}
   ldr r0, gTasks
   movs r1, #16
@@ -31,8 +32,7 @@ intercept: @ intercept the soft reset
   ldr r1, CB2_LoadMap
   bl _call_via_r1
 _b3:
-  pop {r0}
-  bx r0
+  pop {r1}
 _call_via_r1:
   bx r1
 .align 2

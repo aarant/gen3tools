@@ -9,8 +9,8 @@
 ScriptSetup: @ Set flags and copy script into ram script
   push {lr}
   ldr r0, lanetteFlag
-  ldr r1, FlagClear
-  bl _call_via_r1 @ clear Lanette's flag so she appears
+  ldr r3, FlagClear
+  bl _call_via_r3 @ clear Lanette's flag so she appears
   adr r0, scriptHeader
   ldr r4, gSaveBlock1Ptr
   ldr r4, [r4]
@@ -23,24 +23,22 @@ ScriptSetup: @ Set flags and copy script into ram script
   adds r1, #128
   ldr r2, scriptSize
   swi 11 @ place into ram script
-  ldr r1, CalculateRamScriptChecksum
-  bl _call_via_r1
+  ldr r3, CalculateRamScriptChecksum
+  bl _call_via_r3
   str r0, [r4] @ store correct checksum
 RestoreMarshtomp:
   ldr r0, marshtompPID
-  ldr r1, [r0]
-  ldr r4, pidClear
-  bics r1, r4
-  str r1, [r0] @ un-corrupt PID
   movs r1, r0
-  ldr r4, BoxMonToMon @ restore HP, stats, etc
-  bl _call_via_r4
-  pop {r0}
-  bx r0
-_call_via_r1:
-  bx r1
-_call_via_r4:
-  bx r4
+  ldr r3, BoxMonToMon @ restore HP, stats, etc
+  bl _call_via_r3
+@ EnableAnimations:
+@   ldr r0, gSaveBlock1Ptr
+@   ldr r0, [r0,#4] @ gSaveBlock2Ptr
+@   movs r1, #02
+@   strb r1, [r0,#0x15]
+  pop {r3}
+_call_via_r3:
+  bx r3
 .align 2
 FlagClear: .4byte 0x0809D040+1
 lanetteFlag: .4byte 0x366
