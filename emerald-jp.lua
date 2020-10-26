@@ -1,5 +1,5 @@
 -- HUD for Pokemon Emerald (J)
-final_inp = 400000 -- final input frame
+final_inp = 496790 -- final input frame
 
 function readEnemy(n)
   local addr = 0x0243E8 + 100*n
@@ -50,8 +50,8 @@ function showState()
     else -- Miss
       gui.text(0, 14*8, "Miss", 0xffde6b5a)
     end
-    -- addr = memory.read_u32_le(0x007918, "IWRAM")
-    -- gui.text(0, 14*2, string.format("Addr: %08X", addr))
+    addr = memory.read_u32_le(0x007918, "IWRAM")
+    gui.text(0, 14*2, string.format("Addr: %08X", addr))
     -- battler = memory.readbyte(0x023d08)
     -- buffer = 0x02022D08+0x200*battler
     -- battleMons = 0x02023d28+0x58*battler
@@ -71,8 +71,8 @@ function showState()
     gSaveBlock1 = bit.band(memory.read_u32_le(0x5aec, "IWRAM"), 0xFFFFFF)
     steps = memory.readbyte(gSaveBlock1+0x2F9C+0x1b0, "EWRAM")
     gui.text(0, 14*6, string.format("Steps: %02X", steps))
-    -- addr = memory.read_u32_le(0x007918, "IWRAM")
-    -- gui.text(0, 14*4, string.format("Addr: %08X", addr))
+    addr = memory.read_u32_le(0x007918, "IWRAM")
+    gui.text(0, 14*7, string.format("Addr: %08X", addr))
   end
 end
 for i=0,5 do readEnemy(i) end

@@ -53,7 +53,7 @@
 - return to 081C49A7 (CreateMonMarkingsSprite)
 - StartSpriteAnim(020207C8, u8 markings)
   - sprite->animNum = markings (020207F2)
-... LATER
+... later
 - accessed 080076B6 (BeginAnim)
 ... later
 - accessed 08007796 (ContinueAnim)
@@ -76,7 +76,7 @@
 - 47: 00000C00
 
 ## Mail Glitch?
-- gSaveBlock1 + 0x2BE0 + slot*0x24 (0x2BE0 + 0xFF*0x24 = 0x4FBC)
+- gSaveBlock1 + 0x2BE0 + slot\*0x24 (0x2BE0 + 0xFF\*0x24 = 0x4FBC)
 - edits substruct_1[3:]-substruct_2[:10] of box 2 slot 27
 - gWishFutureKnock flags: 020243F9
 - BATTLE_TYPE_SECRET_BASE 0x8000000
@@ -95,30 +95,30 @@
 ## Front Sprite ACE Targets
 ```
 Species Address  EVs
-085B =  0206FFFF (091 HP 008 AT) X
-08B7 =  0206FFFF (183 HP 008 AT) X
-0A8C =  0206FFFF (140 HP 010 AT) X
-40E9 =  0206FFFF (233 HP 064 AT) Y - Works when hatching or viewed in summary
-45BB =  0206FFFF (187 HP 069 AT) X
-E692 =  0206FFFF (146 HP 230 AT) X
+085B =  0206FFFF (091 HP 008 AT)
+08B7 =  0206FFFF (183 HP 008 AT)
+0A8C =  0206FFFF (140 HP 010 AT)
+40E9 =  0206FFFF (233 HP 064 AT) - Works when hatching or viewed in summary
+45BB =  0206FFFF (187 HP 069 AT)
+E692 =  0206FFFF (146 HP 230 AT)
 
-0525 =  02FE0600 (037 HP 005 AT) X
-0599 =  0206FEFE (153 HP 005 AT) X
-0611 =  0206FEFE (017 HP 006 AT) Y - (Only when hatching)
-0673 =  82847F80 (115 HP 006 AT) X
-0737 =  82847F80 (055 HP 007 AT) X
-0799 =  0206FEFE (153 HP 007 AT) X
-09F7 =  02020000 (247 HP 009 AT) X
-0A04 =  02FE0600 (004 HP 010 AT) X
-0A3B =  0206FEFE (059 HP 010 AT) X
-0A3E =  02020000 (062 HP 010 AT) X
-0A5E =  0206FEFE (094 HP 010 AT) X
-0A7B =  02FE0600 (123 HP 010 AT) X
-0AAA =  02FE0600 (170 HP 010 AT) X
-0B15 =  02020000 (021 HP 011 AT) X
-0B50 =  82847F80 (080 HP 011 AT) X
-0B59 =  0206FEFE (089 HP 011 AT) X
-0B99 =  02FE0600 (153 HP 011 AT) X
+0525 =  02FE0600 (037 HP 005 AT)
+0599 =  0206FEFE (153 HP 005 AT)
+0611 =  0206FEFE (017 HP 006 AT) - (Only when hatching)
+0673 =  82847F80 (115 HP 006 AT)
+0737 =  82847F80 (055 HP 007 AT)
+0799 =  0206FEFE (153 HP 007 AT)
+09F7 =  02020000 (247 HP 009 AT)
+0A04 =  02FE0600 (004 HP 010 AT)
+0A3B =  0206FEFE (059 HP 010 AT)
+0A3E =  02020000 (062 HP 010 AT)
+0A5E =  0206FEFE (094 HP 010 AT)
+0A7B =  02FE0600 (123 HP 010 AT)
+0AAA =  02FE0600 (170 HP 010 AT)
+0B15 =  02020000 (021 HP 011 AT)
+0B50 =  82847F80 (080 HP 011 AT)
+0B59 =  0206FEFE (089 HP 011 AT)
+0B99 =  02FE0600 (153 HP 011 AT)
 ```
 
 ## Front Sprite ACE Targets (FR)
@@ -357,7 +357,7 @@ ADC r12,D8          E2ACC0D8
                     FF000000
 box_05: (tS?nAFwm)
 ADC r12,3A00        E2ACCDE8 @ r12=checksum+0x40E9-0x0611
-STRH r12,[r11+B]    E1EBC0BB @ store checksum, r11=02064508
+STRH r12,[r11+B]!   E1EBC0BB @ store checksum, r11=02064508
 box_06: ( ?”♀Gkm )
                     B2AC00FF
 LDRH r12,[pc+0x16]  E1DFC1B6
@@ -370,7 +370,7 @@ STRH r12,[pc+6]     E1CFC0B6
                     FF000000
 box_09: (BJgm Fxl) @ lowercase L
 LDRH r12,[r11+0x4C] E1DBC4BC @ r12=TID
-EOR r12,r12,r0      E0ECC000
+EOR r12,r12,r0      E0ECC000 @ r12=0x40E9 xor PID xor TID
 box_10: ( ?”’FQm )
                     B2AC00FF
 STRH r12,[r11+5]    E1CBC0B4 @ store species
@@ -560,6 +560,7 @@ box_13: (’FQm)
 STRH r12,[r11+4]    E1CBC0B4 +3C
 ```
 ### Hall of Fame
+- Group:ID 16:11 or 0x0B10
 ```
 box_11: (?”“T…o  )
                     B2ACFF00 +28
@@ -658,7 +659,7 @@ B+11                EA0000D9
 BIC r0,lr
 ```
 
-### Box Name GameClear
+### Box Name GameClear (Any% payload)
 ```
 box_01: (mFloyLRo)
 MVN r12,0xe1        E3E0C0E1 @ r12=ffffff1e

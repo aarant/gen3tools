@@ -3,14 +3,14 @@ A TAS of Pokemon Emerald using Arbitrary Code Execution (ACE) to take the game w
 %%TOC%%
 
 !!! Encoding
-Please use [http://tasvideos.org/userfiles/info/61060576732601820|this movie] for encoding!
+I'm working on the encoding movie, it should be linked in here soon!
 
 Suggested screenshot(s): https://imgur.com/a/Dv5pu3M
 
 !!! Description
 Emulator used: BizHawk 2.4 (mGBA core)
 
-I started on 2.3.2, but it syncs on both that version and 2.4.
+I started on 2.3.2, but it should sync on both that version and 2.4.
 
 You'll need to set Skip BIOS to False and the RTC initial time to 1/1/2010.
 
@@ -44,12 +44,15 @@ I became convinced that this had to be possible. But in order to find out, I had
 I started to look for a better way, and gave it up after a few weeks out of frustration. I had been testing on the
 English version of Emerald, using nicknames to write code, but because of the limited character set it was painful
 and impractical. Eventually I tried again and found that on the Japanese version of Emerald, things were better and ACE
-could be a viable strategy in a TAS, and possibly even RTA.
+could be a viable strategy in a TAS, and possibly even RTA. The beta version of this TAS using move ACE can be found [https://youtu.be/cY_O9nRwxc4|here].
+
+Soon afterwards, I was linked to a video of a Japanese runner performing an as-yet unknown ACE method. I reverse-engineered
+and improved on that method, and after [https://www.youtube.com/watch?v=M5HrQM5boQs|several] [https://www.twitch.tv/videos/600562136|speedrunners] found success with it, I decided that using it would be faster.
 
 This TAS is the result of that research, and, I think, demonstrates a significant technical improvement, beating the game
 with only 5 badges using a custom payload written in Japanese PC Boxes.
 
-The result is an almost 20 minute improvement over the published TAS.
+The result is a 20 minute improvement over the published TAS.
 
 !!! Terminology
 There are a few terms I'll use that are important to distinguish:
@@ -71,12 +74,12 @@ or near spinners.
 Emerald's RNG is a 32 bit [https://en.wikipedia.org/wiki/Linear_congruential_generator|LCG] that uses the formula
 {{next = (current * 0x41c64e6d + 0x6073) mod 2^32}}.
 The full 32-bit state is not exposed when the RNG is used—only the high 16 bits are shifted right and returned.
-Throughout, {{rng}} will refer only to the high 16 bits of the full 32-bit state.
+Throughout, {{rng}} refers only to the high 16 bits of the full 32-bit state.
 
 Because of a programming oversight, the RNG is not seeded on soft reset, meaning that the initial seed is always zero.
 The only time the RNG is seeded is when starting a new game, immediately after the player confirms their name.
 This process is quite precise: when the naming screen is entered, the game starts one of the GBA's fast timers, which runs
-at a multiple of the CPU clock much faster than the framerate. Confirming the name stops this timer and seeds the RNG with its value.
+at a multiple of the CPU clock (much faster than the framerate). Confirming the name stops this timer and seeds the RNG with its value.
 
 !! Trainer ID/Secret ID Manipulation
 The visible trainer ID is set when the name is confirmed; this is also the value used to seed the RNG.
@@ -87,7 +90,7 @@ in the naming screen, because pressing a button takes slightly more cycles. The 
 by waiting for the correct cycle.
 
 !! Method 1 (Mudkip) manipulation
-Smogon has a [https://www.smogon.com/ingame/rng/emerald_rng_part2|good article] on this.
+Smogon has a good [https://www.smogon.com/ingame/rng/emerald_rng_part2|article] on this.
 When you pick a starter, the RNG is advanced 4 times.
 * The first and second values become the low & high 16 bits of the [https://bulbapedia.bulbagarden.net/wiki/Personality_value|PID], respectively.
 * The third and fourth values become the starter's IVs.
@@ -95,10 +98,10 @@ When you pick a starter, the RNG is advanced 4 times.
 !! Battle AI/Quick Claw manipulation
 Each turn in battle, just before the game displays the FIGHT option, the opponent's AI runs, advancing the RNG
 a number of times (this is highly variable, and dependent on what your pokémon is, their moves, etc). A value
-known as the {{randomTurnNumber}} is also chosen from the RNG. This is only used for Quick Claw—if it is less than 0x3333,
-Quick Claw will activate and the holder will go first.
+known as the {{randomTurnNumber}} is also chosen from the RNG. This is used only for Quick Claw—if it is less than 0x3333,
+Quick Claw allows the holder to go first.
 
-By manipulating the timing of turns opponent AI decisions can be manipulated to choose certain moves or Quick Claw activation.
+By timing when turns start the AI's decisions can be manipulated to choose certain moves, or allow Quick Claw to activate.
 
 !! Accuracy/Critical/Damage Manipulation
 Whether a move will hit is determined just before the attack string is printed. The formula is:
@@ -111,13 +114,13 @@ Damage calculation happens 6 cycles after critical calculation.
 The critical formula is: {{if (rng mod crit_mod) == 0 then CRIT}}; in this run {{crit_mod}} is always 16.
 Damage is calculated as a scaling value, from 85-100%, inclusive: {{scale = 100 - (rng mod 16)}}.
 
-A critical hit always doubles the damage a move will do.
+Critical hits always deal double damage, and ignore any of the target's stat boosts.
 
 !! Wild Pokémon/Encounter manipulation
-There is an important overworld value called the {{tileTransitionState}}. This value is normally 1 while moving, 0
+There's an important overworld value called the {{tileTransitionState}}. This value is normally 1 while moving, 0
 when standing still, and briefly 2 when the player passes over the center of a tile.
 
-Encounters occur 1 frame/2 cycles after the frame __before__ the state becomes 2.
+Encounters occur 1 frame/2 cycles after the frame just before this value becomes 2.
 If stepping between similar tiles (i.e grass into grass), the formula is:
 {{if (rng mod 2880) < rate * 16 then ENCOUNTER}}, where {{rate}} is the encounter rate of the area.
 
@@ -134,11 +137,9 @@ and some other minor details that aren't too important.
 Although text does move slightly faster on the Japanese version of Emerald, this is not why I chose it. Rather,
 the advantage of JP Emerald lies in its
 [https://bulbapedia.bulbagarden.net/wiki/Character_encoding_in_Generation_III#Japanese | character set].
-The Japanese character set gives access to many more bytes than the English set. These characters are used to write
-the bootstrap pointer to execute code (Wingull's nickname), and the bootstrap payload (PC Boxes 1-5).
-
-It is possible to do ACE on US Emerald, but the setup is longer and the code you can write is more limited. Code can
-also be written using glitch items or EVs, but this takes even longer and would not save time.
+The Japanese character set gives access to many more bytes than the English set. Because arbitrary code execution targets
+PC box names, having more characters available makes the assembly payload shorter and easier to write. In speedruns of English
+Emerald, 8 box names of code are required to beat the game. In contrast this TAS requires only 5.
 
 Learning that JP had this property and disassembling the Japanese ROM is what inspired me to make this TAS in the first
 place.
@@ -146,9 +147,9 @@ place.
 !!! Pomeg Glitch
 The Pomeg glitch has been known since around 2006-2007, but it took years for its full potential to be realized.
 The name comes from the use of Pomeg berries.
-Using a Pomeg Berry on a pokémon which gained 1 HP through EVs will decrease its HP. If the pokémon is at 1 HP when
-it is used, it will be knocked out, even if it is the last conscious pokémon. This will not force the player to white out
-and the totally KO-ed party allows you to battle with Eggs and perform Glitzer Popping, etc.
+Using a Pomeg Berry on a pokémon which gained HP through EVS will decrease its HP. If the pokemon loses its last HP due
+to this, it will be knocked out, even if it is the last conscious pokémon. This will not force the player to white out
+and the totally KO-ed party allows you to battle with Eggs and perform Glitzer Popping, among other things.
 
 !! Glitzer Popping
 Named by Werster, this glitch works by accessing "pokémon" beyond the sixth slot of the party and modifying memory.
@@ -156,25 +157,25 @@ Named by Werster, this glitch works by accessing "pokémon" beyond the sixth slo
 Bulbapedia has an [https://bulbapedia.bulbagarden.net/wiki/Glitzer_Popping|article] on this glitch.
 
 The procedure in this run works as follows:
-# In order, create a team of: 1 "sacrifice" pokémon, 1 pokémon at 1 HP for the Pomeg glitch, and a third pokémon you want to corrupt.
-# Enter a wild battle, knock out the sacrifice pokémon, switch to the last slot and flee. This sets the slot of the last seen conscious pokémon to 3.
+# In order, create a team of: 1 "sacrifice" pokémon (Poochyena), 1 pokémon at 1 HP for the Pomeg glitch (Abra), and a third pokémon you want to corrupt (Marshtomp).
+# Enter a battle, knock out the sacrifice pokemon, and set the last used party slot to 3 (by switching in Marshtomp).
 # Deposit the third pokémon. Now slot 3 is empty, but the player still has the conscious Pomeg pokémon.
-# Use the Pomeg berry on the Pomeg pokémon. Now the player has no conscious pokémon but has not whited out.
-# Enter a wild battle. The game scans the player party for conscious mons, to update the slot index accordingly. Since it sees none, it does not update the index, and sends out the now-empty slot 3, a ?? or "Decamark".
+# Use the Pomeg berry on the Pomeg pokémon. Now the player has no conscious pokémon but does not white out.
+# Enter a wild battle. The game scans the player party for a conscious pokémon to send out. Since it sees none, it does not update the index, and sends out the now-empty slot 3, a ?? or "Decamark".
 # Enter the party menu, view the summary of the sacrifice pokémon, and exit it. This refreshes the party count to zero.
-# The party selection pointer underflows, allowing pokémon above slot 1 to be selected with the Up key.
+# The party selection pointer underflows, allowing pokémon above slot 1 to be selected by repeatedly pressing Up.
 # The selection pointer is warped into non-party memory, starting at Box 2 Slot 24 of the PC, and ascending 100 bytes with each up press.
 
 As the pointer ascends, it treats 100-byte blocks of memory as party pokémon, and runs an anti-cheat function on them.
 If the checksum of this "pokémon" is invalid, which is likely, a few bits will be set or flipped corresponding to the
-{{isEgg}} and {{badEgg}} bits, turning it into a Bad Egg. This minor bit-flipping allows for precise RAM corruption.
+{{isEgg}} and {{badEgg}} bits.. This minor bit-flipping allows for precise corruption of RAM.
 
 !! RAM Corruption
 When the pointer selects an invalid block, two types of corruption can occur:
 * Type 1 corruptions are fixed, 20 bytes after the pointer, and set bits 0 and 2 to 1.
 * Type 2 corruptions vary depending on the PID of the block and can set bit 6 to 1 or 0 depending on "pokémon" data.
-Corrupting a pokémon's PID can swap the order of its [https://bulbapedia.bulbagarden.net/wiki/Pok%C3%A9mon_data_structure_in_Generation_III|data structures], like swapping EVs and Moves.
-If done carefully, this corruption will not make the pokémon illegal and will give access to "glitch" moves or pokémon
+Corrupting a pokémon's PID can swap the order of its [https://bulbapedia.bulbagarden.net/wiki/Pok%C3%A9mon_data_structure_in_Generation_III|data structures], for instances, swapping EVs and moves, or (in this run) EVs and species number.
+If done carefully, this corruption keep the checksum legal and gives access to "glitch" moves or pokémon
 outside the normal move/species lists.
 
 Another anti-cheat feature works in our favor here: PC and Item data's memory locations are randomly shifted by an
@@ -182,118 +183,122 @@ offset whenever the player opens the party menu, enters a battle, etc. Since the
 for corruption can be manipulated, but the corruption locations are fixed, certain kinds of corruptions are always
 possible, you just need to roll the right memory layout.
 
-In this run, corruption type 2 is used to set bit 6 of Marshtomp's PID, causing its EV data to turn into its move data.
-This turns it into an Egg and lets us acquire the glitch move needed to trigger ACE by carefully controlling
-Marshtomp's EVs.
+In this run, corruption type 2 is used to set bit 6 of Marshtomp's PID, causing its EV data to turn into its growth data.
+This turns it into an Egg of a glitch species (0x615), which lets us trigger ACE by viewing its sprite.
 
-!! Glitch Move ACE
-Since glitch moves are out of range of the normal list of moves in the game, their effects are read from
-unintended memory areas. These effects can be anything from allowing Instant Victory/Flee Glitch, to just crashing
-the game, to allowing for code execution.
-
-On Japanese Emerald, glitch move 0x3110's animation script points to RAM rather than ROM and so what it does can
-be manipulated. Animation scripts can create sprites, launch visual or sound tasks, end themselves or hang forever.
-
-By writing a custom script, we can launch a sound task at a RAM address we control and have the game run our __own__ code!
-This gives us the ability to do anything we want, including beating the game in a number of ways.
+!! Sprite ACE
+In Emerald, every Pokemon has a small animation that plays when it is viewed. The pokemon species specifies the callback
+function that should be called. Glitch pokemon, whose species number is higher than the total number of actual pokemon, read the pointer for this callback from out-of-bounds data. By figuring out the formula for what determines the callback address, I found that
+there are several [https://glitchcity.info/wiki/Arbitrary_code_execution#In_Generation_III|glitch pokemon] whose callback
+functions are in RAM, specifically in PC data which we can manipulate. In this run, we acquire glitch pokemon 0x0615
+and hatch it, running code in PC Box names.
 
 !!! Routing
 The early game is similar to previous Emerald TASes. The main differences pre-Pomeg are:
-* 2 HP Ups are picked up, one on Route 116, and one on Route 111 after getting Surf.
-* 3 Proteins are picked up, one on Route 114, one in the Route 111 desert, and one on Route 106 with Surf.
-* Marshtomp KOs 3 Solrock in Meteor Falls to gain 6 Attack EVs.
-* Strength is not acquired or used.
-* Pomeg berries are acquired earlier from outside the Berry Master's house.
-
-After getting the Pomeg berry, the route diverges significantly. Everything is set up for ACE:
+* Marshtomp KOs a Solrock in Meteor Falls to gain 6 Attack EVs.
 * Fly is not needed and so there is no need to catch a Tailow.
+* Fewer items are used, and they are purchased at Fallarbor's Mart earlier.
+* Strength is not acquired or used; we instead backtrack through Route 113.
+* We fight different trainers in the Petalburg Gym, because of the required EVs on Marshtomp.
 * A "sacrifice" pokémon (Poochyena) is caught.
-* Abra learns Facade to have a damaging move to use later.
-* After the Protein on Route 106, a Wingull is battled and caught to set up the party for Pomeg Glitch.
-* Everything from the Weather Institute onwards is skipped by warping to the end of the game.
+* We buy two HP Ups from the Slateport market.
+* Pomeg berries are acquired earlier from the Berry Master, along with a Kelpsy Berry.
+
+After getting the Pomeg berry, the route diverges significantly. Everything from the Weather Institute onwards is
+skipped by warping to the end of the game.
 
 !! Start
 The first thing to do is to disable animations to save time throughout the run, and pick a nice-looking border.
 I chose the kana for 'U' as my trainer name because it was short and represents 'U', the viewer.
 And because it seemed like it might be funny to anyone who speaks Japanese unlike me.
 A few extra buttons (L&R) are pressed here to manipulate trainer ID—since the RNG is seeded
-with the timer here, it's important to pick a good seed that gives us quick access to a good Mudkip!
+with the timer here, we need to pick a seed that gives us access to a good Mudkip!
+
+Specifically, we'll be using a Rash Mudkip with PID {{89613C19}} and these IVs: (30, 31, 16, 28, 1, 10).
 
 The first step we take in the truck plays a "bumping" sound, which happens when we bump into a wall and immediately
 turn on the next frame instead of waiting to turn. This is used throughout the run.
 
-Even with the ID prep, we still have to wait a bit for a good Mudkip cycle, so I thought it'd be fun to fake out
-the viewer a bit. I'd love to choose Torchic, but Mudkip is optimal.
-
 Once we have Mudkip, we battle Brendan, get Running Shoes, our Pokédex (not that we'll be filling it much), Poké Balls,
 and we're off!
 
-After beating the Youngster, we do some furious running near the spinner to advance the RNG more quickly for the
+After beating the Youngster, we do some furious running near the spinner girl to advance the RNG more quickly for the
 Ralts manipulation.
 
 !! Petalburg City
-We'll need to Teleport to Petalburg a few times later, so we go into the Pokémon Center to set it.
+We'll need to teleport back here 3 times later, so we briefly enter the Pokémon Center to set the Teleport point.
 
 Poor Wally. He wants a Pokémon but can't figure out how to catch one!
 
-Unfortunately for him, we manipulate the Zigzagoon he borrows and the Ralts he fights so that he KOs it instead of catching it. The game doesn't actually take this into account, but we save time by skipping the catch animation.
+Unfortunately for him, we manipulate his borrowed Zigzagoon and the Ralts he fights so that he KOs it instead of catching it. The game doesn't actually take this into account, but we still save time by skipping the catch animation.
 
-This can only happen if Zigzagoon has an Attack IV of more than 25, and Ralts has less than 4 HP IVs and 6 Defense IVs, and a Defense-lowering Nature. It's rare for a given RNG cycle to cause this, which is why we wasted some time earlier to time it properly.
+This can only happen if Zigzagoon has an Attack IV of more than 25, and Ralts has a Defense-lowering Nature and less than 4 HP IVs and 6 Defense IVs. It's rare for a given RNG cycle to cause this, which necessitated advancing the RNG earlier to hit it.
 
-We finally get away from Dad, and Wally, only for Scott the stalker to show up and stall us even more. We then head west to Petalburg Woods to find a Devon clerk looking for a Shroomish, but he's attacked by a Team Aqua Grunt! 3 critical Tackles make quick work of his Poochyena though.
+We finally get away from Dad, and Wally, only for Scott to show up and stall us even more. We then head west to Petalburg Woods to find a Devon clerk looking for a Shroomish, but he's attacked by a Team Aqua Grunt!
+3 critical Tackles make quick work of his Poochyena though. Mudkip's speed, which usually doesn't matter much in this run, matters here:
+if it doesn't have a higher enough Speed IV, this Poochyena will outspeed it and make us take 3 hits instead of 2.
 
 !! Rustboro City
-The first thing we do is head right to the Trainer School to get the Quick Claw, which will let Mudkip go first on
-certain turns we can manipulate even if the foe is faster. Then we go into the Gym and battle Youngster Josh, making
-his Geodude whiff so that we can level up and learn Water Gun.
+The first thing we do is head right to the Trainer School to get the Quick Claw, which will let us make Mudkip go first
+even if the foe is faster. Then we go into the Gym and battle Youngster Josh, so that we can level up and learn Water Gun.
 
 Four Torrent boosted Water Guns later and we've beaten Roxanne and taken our first badge from under her Nosepass! We head out and chase after the Devon clerk from earlier, who tells us the Aqua Grunt stole his Devon Goods.
-We head onto Route 116 in pursuit. We dodge a few spinners, defeat a Hiker, and get to Rusturf Tunnel where Mr. Briney tells us the Grunt has stolen his beloved Peeko. No one messes with Peeko, so we confront the Grunt and reunite Briney and his pet. We head back to Rustboro but on the way, we catch an Abra for Teleport and Pomeg glitching later.
+We head onto Route 116 in pursuit. We dodge a few spinners, defeat a Hiker, and get to Rusturf Tunnel where Mr. Briney tells us the Grunt has stolen his beloved Peeko. We confront the Grunt for him and reunite Briney and his pet. We head back to Rustboro but on the way, we catch an Abra for Teleport and to use for Pomeg glitching later.
 
-After a very long conversation with Mr. Stone, we get the Pokénav and two more delivery quests. We teleport back to Petalburg to try avoid Brendan...but he shows up anyway at Briney's cottage! Deciding he's not worth battling, we ignore him and ask Mr. Briney to take us to Dewford.
+After a very long conversation with Mr. Stone, we get the Pokénav and two more delivery quests. We teleport back to Petalburg to try and avoid Brendan...but he shows up anyway at Briney's cottage! Deciding he's not worth battling, we ignore him and ask Mr. Briney to take us to Dewford.
 
 !! Dewford Town
 Our boat is somehow briefly stopped in its tracks by a call on the Pokenav from dad, but we make it to Dewford eventually. Steven really likes rocks and so we find him deep inside Granite Cave to deliver Mr. Stone's Letter. Using the Escape Rope actually loses time here, so we head right out and enter Brawly's gym. Brawly is a tricky fight because of how easily Makuhita can KO us, but with Torrent-boosted Water Gun we acquire the Knuckle Badge and evolve our Mudkip! We then cruise onwards to Slateport.
 
 !! Slateport City
-Not much happens here of note except our final heal of the run from Capt. Stern. From here on every move we use counts.
+Not much happens here of note except our final heal of the run from Capt. Stern. From here on every move we use counts,
+because we need to have enough Water Gun PP all the way through our fifth gym badge.
 
 North on Route 110 are two annoying fights. Plusle and Minun love to use Quick Attack, which outspeeds Marshtomp even with Quick Claw and wastes time, so we manipulate the AI's move choice to get past both PokéFans.
 
-We run into Brendan again, one of the hardest fights in the run at this point. To KO Grovyle we either need two max damage critical Tackles (a 1/256 chance for each), or two critical Mud Shots that print additional text. We manage to get one of each, and also manipulate Grovyle's Absorb damage so we can have the right amount of health for later.
+We then run into Brendan again. This is one of the hardest fights in the game and is infamous in speedruns. To KO Grovyle we either need two max damage critical Tackles (a 1/256 chance for each), or two critical Mud Shots (Mud Shot loses time because it prints more text). We manage to get one of each, and also manipulate Grovyle's Absorb damage so that we can have enough health for later.
 
 !! Mauville City
-We get Rock Smash so we can smash rocks and the Mach Bike so we can go fast. Wally, his Uncle, and our stalker Scott all stall us, but we eventually get into the Gym. Does Wally's Uncle even have a name?..anyway, this gym goes by fast with Mud Shot for damage and the Quick Claw to outspeed everything.
+We get Rock Smash so we can smash rocks and the Mach Bike so we can go fast. Wally, his Uncle, and our stalker Scott all stall us, but we eventually get into the Gym. Does Wally's Uncle even have a name?..anyway, this gym goes by fast with Mud Shot for damage and the Quick Claw to outspeed all of Wattson's pokémon.
 
-Next, we head north to Route 111 & 113, though we're interrupted by a call from Wally. We go southwest to Meteor Falls, picking up a Protein on the way, for the most pointless cutscene ever—both Magma and Aqua are up to no good. We KO 3 Solrock for EVs on Marshtomp and leave poor Professor Cozmo there to go back the way we came.
+Next, we head north to Route 111 & 113, though we're interrupted by a call from Wally. We go southwest to Meteor Falls, picking up a Protein on the way, for the most pointless cutscene ever—both team Magma and Aqua are up to no good. We KO a Solrock for Attack EVs
+and pick up some items before backtracking all the way back to Mt. Chimney.
 
 !! Mt. Chimney
-We battle our way up the mountain and breeze through Maxie's monologue. We Tackle Mightyena to start, making sure its Bite leaves us with 10 HP at level 25. A few well-timed Water Guns later and we're ready to head back down the mountain to fight Flannery. That's also the last we'll be seeing of either villainous team this run. Since all of Flannery's pokémon are Fire types our only real challenge is getting the critical hit on Torkoal. After gaining the Heat Badge we head east to Route 111 to pick up our second Protein, then backtrack to Verdanturf for a quick shopping trip (1 Super Potion, 2 X Sp. Attacks, and 1 Fluffy Tail) and an HP Up nearby. Finally, we teleport to Petalburg for the boss fight.
+We battle our way up the mountain and breeze through Maxie's monologue. We Tackle Mightyena to start, making sure its Bite leaves us with 22 HP at level 25. A few well-timed Water Guns later and we're ready to head back down the mountain to fight Flannery. That's also the last we'll be seeing of either villainous team this run. Since all of Flannery's pokémon are Fire types our only real challenge is getting the critical hit on Torkoal. Finally, we teleport to Petalburg for the closest thing to a final boss fight in this run.
 
 !! Petalburg City Part 2
-We're finally ready to fight Dad. The Gym trainers we fight are chosen to limit the EV gain on Marshtomp so that we don't go over the amount we need. We use our Super Potion to heal Marshtomp almost to full to prepare for the most difficult fight in the run. Even at +2 boosts from the X Sp. Attacks, we still need critical hits to defeat all of Norman's pokémon. Remember all that talk about managing health? If we have more than around 30 when we get to Slaking, it will always use Facade, which always KOs us. If we have less than about 25, its weaker Faint Attack will KO us. In that narrow range, we can just barely survive a Faint Attack, avoid activating Slaking's Sitrus Berry and KO it on its second turn out. We claim our 5th badge and victory over Dad, talk to "Uncle" to get Surf, and head out to completely ignore the rest of the game's story.
+We're finally ready to fight Dad. The Gym trainers we fight are chosen to limit the EV gain on Marshtomp so that we don't go over the amount we need. We use our Super Potion to heal Marshtomp almost to full to prepare for the most difficult fight in the run. Even at +2 boosts from the X Sp. Attacks, we still need critical hits to defeat all of Norman's pokémon. Remember all that talk about managing health? If we have more than 28 HP when we get to Slaking, it will always use Facade, which always KOs us. If we have less than about 28, its weaker Faint Attack will KO us. With exactly 28 HP, we can manipulate Feint Attack to do 27 damage and let us survive, avoid activating Slaking's Sitrus Berry and KO it on the second turn. We claim our 5th badge and victory over Dad, talk to "Uncle" to get Surf, and head out to completely ignore the rest of the game's story.
 
 !! Route 119
-Here is where the fun really begins. We make the long trek back to Mauville and Route 119, catching a Poochyena on the way. We teach Facade to Abra and Surf to Marshtomp to cross the water and pick up a 2nd HP Up, only to be stopped by our first and only Double Battle. Importantly, Abra gains an HP EV and levels here, but doesn't really do much. We head east to chat with Steven and do some furious running near the blonde spinner to set up an encounter later.
+Here is where the fun really begins. We make the long trek back to Mauville and Route 119, catching a Poochyena on the way.
+We also detour down to Slateport's market to pick up two HP Ups, one for Abra and one for Marshtomp. Ideally, we would
+do this detour earlier, right before leaving Slateport for the first time, but we don't have enough money until after
+fighting the PokéFans, so its faster to do it now. We're then stopped by our first and only Double Battle. The events of
+this battle are extremely important. In it we KO Poochyena, bring Abra down to 1 health, and set our last used
+party slot to 3 (by sending out Marshtomp in Poochyena's place). We head east to chat with Steven and do some furious
+running near the blonde spinner to set up an encounter later.
 
-Finally we get what we came for—Pomeg Berries! Before we Teleport back to Petalburg, we take the important step of reording our party for Glitzer Popping.
-
-!! Route 105
-This quick detour is just for the 3rd Protein on the shore. With all our vitamins acquired, we force-feed them to poor Abra and Marshtomp. The running we did earlier advanced the RNG enough to give us quick access to a level 29 Wingull encounter here, which KOs Poochyena and brings Abra to 1 HP. Encounters earlier than this are either too weak to do much damage to Abra, or KO it 100% of the time. We switch to Marshtomp (setting up Pomeg glitch) and catch the Wingull, giving it a fancy nickname. This name will be the bootstrap code that will redirect the glitch animation to our custom code.
+Finally we get what we came for—a Pomeg Berry! We also pick up a Kelpsy Berry to finalize Marshtomp's EVs at 21 HP, 6
+Attack, before teleporting back to Petalburg for the final time.
 
 !! Glitzer Popping
-Wingull needs to be placed in Box 12 and Marshtomp in Box 2. While we're in the PC, why not think of some fun names for the PC Boxes? Unfortunately the strict timing of the upcoming encounter means we only have time to nam 2 before leaving.
+Marshtomp needs to be placed in Box 2 slot 24 and we begin writing our payload in Box 1.
 
-Using the Pomeg Berry on Abra knocks it out, leaving us with a totally KOed party. When we enter a battle on a precise frame, the memory layout is such so that we can corrupt Marshtomp's PID and get our glitch move. The game gets confused and thinks we have zero pokémon, so it just sends out the pokémon in the 3rd slot, the last slot we used. Viewing Abra's summary refreshes the party count and lets us select more than 6 pokémon, and we scroll up once to corrupt the first possible address.
-
-Whiting out to exit the battle is an option, but just barely loses time compared to using the Fluffy Tail.
+Using the Pomeg Berry on Abra knocks it out, leaving us with a totally KOed party. When we enter a battle on a precise frame, the memory layout is such so that we can corrupt Marshtomp's PID, swapping its EV and species data and turning it into species 0x0615. The game gets confused and thinks we have zero pokémon, so it just sends out the pokémon in the 3rd slot, the last slot we used which is now empty.
+Viewing Poochyena's summary refreshes the party count and lets us select more than 6 pokémon, and we scroll up once to
+corrupt the first possible address and Marshtomp's PID.
 
 !! ACE Setup
-Returning to the PC, we think of some more Box names while picking up and dropping the Egg that was Marshtomp. This refreshes its PP, which would otherwise be zero. The box names are THUMB assembly code that will allow us to input even more code using the buttons, one byte per frame. Finally, before ACE can be triggered, we re-enable animations so that the glitch animation will play. Some more furious running is needed to time an encounter with the right memory layout, but the end of the run is very near.
+Returning to the PC, we finish our box name payload and withdraw our glitched Egg. The box names are ARM assembly code that will allow us to input even more code using the buttons, one byte per frame. Unfortunately for this Egg to hatch, we need to complete the
+next Egg cycle, which rolls over every 255 steps meaning we have to do some biking.
 
-A lot happens here very quickly. As soon as the glitch move's name finishes printing, execution jumps to code in the Box names and starts writing bytes based on the buttons that are pressed. We're free to input any payload and jump to it by pressing L, breaking the loop. There are, however, better and worse options for quickly beating the game from here.
+When the Egg hatches, a lot happens very quickly. As soon as the glitch sprite is on screen, the animation starts and begins
+running the code in the Box names. This code lets us write bytes based on the buttons that are pressed, and by pressing
+L&R we break the input loop and run whatever we input. We're free to input any game-ending payload here, but there are
+good and bad options for quickly beating the game.
 
-Since the TAS stops at final input guaranteed to complete the game, I wanted a payload that stopped as early as possible, and completed the game without question.
+Timing stops at the final input after which completing the game is inevitable.
 
 Teleporting to the Hall of Fame map is doable, and triggers full game completion. However I'd still have to press A on the text boxes and the Hall of Fame screen itself, which adds additional time.
 
@@ -340,7 +345,5 @@ Battles in Emerald are very dependent on data being set at the right times. I ha
 * Everyone in the Pokémon RTA Discord for their routing and spinner docs, and for letting me pester them with ACE strats
 
 !!! Possible Improvements
-* Very recently, I reverse-engineered a new ACE method used in a JP speedrunner's video, that works via sprite callbacks. It might be faster than getting a glitch move, but requires a complete redo of the run and so I want to submit what I
-have before adapting an entirely new strategy. The RTA runners are also going to try this strategy on English.
-* Going to Verdanturf early might save time compared to going after Flannery. It's hard to tell though—there are no good Wingull encounters for hundreds of frames before the one I use, so I'd just have to do more furious running that
-might not, in the end, save time.
+* It's possible that there is a better seed with a different Mudkip that could be faster. The only way to really tell
+would be to write a bot to try them all
