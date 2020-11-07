@@ -435,7 +435,7 @@ STREQ r0,[r0]         04000130 # REG_KEYINPUT
 LDRNET r0,[pc-0x148]  143F0148 # pseudo-BNE
 ```
 
-## ARM Box Names (5 Boxes)
+## ARM Box Names (5 Boxes) (Used in TAS)
 - Box names start around 02071800
 - ACE Vector is 0206FEFE
 ```
@@ -455,6 +455,42 @@ tsts r1,#0x300        13110E30 @ Z=L&R
 box_05: @ (や ぜとぃあ え)
 ldrne! r0,[pc-#28]    143F0024 @ pseudo-BNE to swi
                       04000130 @ REG_KEYINPUT
+```
+
+## 0x615 Warp Code (JPN)
+- For species 0x615 (21 HP 6 AT)
+- r1: 0206FEFE
+- r14: 080066FF
+- Replace first * with the character for map group
+- Replace second * with the character for map ID
+- [Character map](https://bulbapedia.bulbagarden.net/wiki/Character_encoding_in_Generation_III#Japanese)
+- Hall of Fame: Group:ID: 16:11 or 0x10:0x0B, characters: た and さ
+- Faraway Island Group:ID 26:56
+- Birth Island Group:ID 26:58
+- Navel Rock Group:ID 26:66
+- Southern Island Group:ID 26:09
+```
+box_01: (り ポqし♂…o)
+ldr r0,[pc+0x30]    E59F0028 @ r0=CB2_LoadMap2+1
+movs r11,0x3000000  E3B0B50C
+box_02: ( ?』お/ゴn ) @ first and last are spaces
+                    B2AC00FF
+add r11,0x5000      E28BBA05
+box_03: (?』x/パq  )
+                    B2ACFF00
+ldr r11,[r11+0xaec] E59BBAEC @ r11=&saveBlock1
+box_04: (E*Fッo   )
+                    BFFF0000
+mov r12,xx          E3A0C0xx @ r12=map group
+                    FF000000
+box_05: (*Rザn」FQm)
+add r12,xx00        E28CCCxx @ r12=group:id
+strh r12,[r11+4]    E1CBC0B4
+box_06: ( ?』ナケくくた) @ first is space
+                    B2AC00FF
+                    08085965 @ CB2_LoadMap2+1
+box_07: (ぁm) @ small ぁ on blue screen
+                    E12FFF10
 ```
 
 ## JPN Sprite ACE
@@ -492,7 +528,7 @@ Species Address   EVs
 059D =  0202FEFE (157 HP 005 AT)
 0615 =  0202FEFE (021 HP 006 AT) x
 079D =  0202FEFE (157 HP 007 AT)
-085F =  0202FFFF (095 HP 008 AT) Y -- Used in the video
+085F =  0202FFFF (095 HP 008 AT) Y -- Used in the video, summary-stable
 08BB =  0202FFFF (187 HP 008 AT) Y
 0A3F =  0202FEFE (063 HP 010 AT) x
 0A62 =  0202FEFE (098 HP 010 AT)

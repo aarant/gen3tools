@@ -237,6 +237,33 @@ cpsr: [-------]
 - GameClear: 08137734+1
 - OT branch: (EA0000AE) (-  v) (+10 pokemon) or (I  v) (+10 pokemon?)
 - Nickname branch: (ea0000b1) ("  v) (+9 pokemon)
+### 0x40E9 Zero PID & TID
+- Place in Box 10 Slot 20
+- 0206f280 - 0206f24b = 0x34
+```
+box_01: (x♂zN 6FF)
+PUSH r2-r3,r5-r7,lr       B5EC @ preserve necessary registers
+LDMIA r0!,r1-r3,r5-r7     C8EE @ do not touch r4!
+ADD r7,pc,nn              A700
+STMIA r0!,r6,r7           C0C0 @ store new jump address
+box_02: (X XxC?” )
+                    D200D2FF
+POP r2-r3,r5-r7,pc      BDEC
+                        B2AC
+box_03: (?”4CUn  )
+                    B2ACFF00
+sbc r11,pc,0x2940   E2CFBDA5 @ r11=&PID-0x34
+box_04: (E’2Qm   )
+                    BFFF0000
+strh r3,[r11+52]    E1CBA3B4
+                    FF000000
+box_05: (♀2Qm,2Qm)
+strh r3,[r11+54]    E1CBA3B6
+strh r3,[r11+56]    E1CBA3B8
+box_06: ( ?”/2Qm )
+                    B2AC00FF
+strh r3,[r11+58]    E1CBA3BA
+```
 ### 0x611 Change DOTS to 0x40E9
 - Place DOTS in Box 10 Slot 19
 - DOTS must not have evolved or been corrupted
@@ -286,15 +313,6 @@ box_13: (FNRob ?n)
 bic r12,C00000      E3CCC8C0 @ r12=81377A7
 bic r0,r12,D6       E2AC00D6 @ r0=SetCB2WhiteOut
 ```
-
-ADC r12,lr,DC0      E2AECEDC @ r12=080077A7
-box_12: (EYN?n   )
-                    BFFF0000
-ADC r12,D30000      E2ACC8D3 @ r12=8D377A7
-                    FF000000
-box_13: (FNRob ?n)
-BIC r12,C00000      E3CCC8C0 @ r12=81377A7
-ADC r0,r12,D6       E2AC00D6 @ r0=SetCB2WhiteOut
 ### Set pokemon name (WIP)
 - target 0206FF4C (Box 11 Slot 30 nickname)
 - target 0206FF9C (Box 12 Slot 30 nickname)
