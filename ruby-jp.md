@@ -21,6 +21,7 @@
 - atkD2_tryswapitems does not check mail at 08027518
 - mail struct: 9 u16 words, 8 character name, TID&SID, 2 byte species, 2 byte item ID
 - mail ID is stored +5 bytes after BoxPokemon
+To dupe items:
 1. Give mail to lead pokemon, mail slot 0
 2. Enter a double battle. Use Thief on the first pokemon.
 3. Take the mail from the second pokemon.
