@@ -237,6 +237,55 @@ cpsr: [-------]
 - GameClear: 08137734+1
 - OT branch: (EA0000AE) (-  v) (+10 pokemon) or (I  v) (+10 pokemon?)
 - Nickname branch: (ea0000b1) ("  v) (+9 pokemon)
+### 0x611 Change DOTS to 0x288A (Fast Clone)
+- Place DOTS in Box 10 Slot 19
+- DOTS must not have evolved or been corrupted
+- 0x288A xor 0x0084 xor 0x9746 = 0xBF48
+- species diff is 0x288A - 0x12A (Seedot) = 0x2760
+```
+box_01: (4CUn♂Ggm)
+sbc r11,pc,0x2940   E2CFBDA5 @ r11=&checksum-21
+ldrh r12,[r11+21]   E1DBC1B5 @ r12=checksum
+box_02: ( ?”0S?n )
+                    B2AC00FF
+adc r12,0x2840      E2ACCDA1
+box_03: (?”kFRn  )
+                    B2ACFF00
+sbc r12,0xDF        E2CCC0DF @ r12=checksum + 0x2760
+box_04: (E♂GQm   )
+                    BFFF0000
+strh r12,[r11+21]   E1CBC1B5 @ store checksum
+                    FF000000
+box_05: (BR…oXU?n)
+mov r12,0xBC00      E3B0CCBC
+adc r12,0x348       E2ACCFD2 @ r12=0x288A xor PID xor TID
+box_06: ( ?”♂HQm )
+                    B2AC00FF
+strh r12,[r11+37]   E1CBC2B5 @ store species
+box_07: (?”VGEn  )
+                    B2ACFF00
+adc r12,pc,0x34     E2BFC1D0 @ r12=&Box14Name
+box_08: (Em…lo   ) @ lowercase L
+                    BFFF0000
+mvn r11,0xe1        E3E0B0E1 @ r11=ffffff1e
+                    FF000000
+box_09: (y♀Qom”Qo)
+bic r11,0xed>>12    E3CBB6ED @ r11=f12fff1e
+bic r11,0xe1>>4     E3CBB2E1 @ r11=BX r0
+box_10: ( ?” …?q )
+                    B2AC00FF
+str r11,[r12]       E5ACB000 @ store BX r0
+box_11: (?”hT-n  )
+                    B2ACFF00
+adc r12,lr,DC0      E2AECEDC @ r12=080077A7
+box_12: (EYN?n   )
+                    BFFF0000
+adc r12,D30000      E2ACC8D3 @ r12=8D377A7
+                    FF000000
+box_13: (FNRob ?n)
+bic r12,C00000      E3CCC8C0 @ r12=81377A7
+bic r0,r12,D6       E2AC00D6 @ r0=SetCB2WhiteOut
+```
 ### 0x40E9 Zero PID & TID
 - Place in Box 10 Slot 20
 - 0206f280 - 0206f24b = 0x34

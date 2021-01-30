@@ -465,10 +465,10 @@ ldrne! r0,[pc-#28]    143F0024 @ pseudo-BNE to swi
 - Replace second * with the character for map ID
 - [Character map](https://bulbapedia.bulbagarden.net/wiki/Character_encoding_in_Generation_III#Japanese)
 - Hall of Fame: Group:ID: 16:11 or 0x10:0x0B, characters: た and さ
-- Faraway Island Group:ID 26:56
-- Birth Island Group:ID 26:58
-- Navel Rock Group:ID 26:66
-- Southern Island Group:ID 26:09
+- Faraway Island Group:ID 26:56 or 0x1A:0x38
+- Birth Island Group:ID 26:58 or 0x1A:0x3A
+- Navel Rock Group:ID 26:66 or 0x1A:0X42
+- Southern Island Group:ID 26:09 or 0x1A:0x09
 ```
 box_01: (り ポqし♂…o)
 ldr r0,[pc+0x30]    E59F0028 @ r0=CB2_LoadMap2+1
