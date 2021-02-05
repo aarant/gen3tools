@@ -4,6 +4,13 @@ from itertools import islice
 from pokemon import BoxMon
 
 
+# RNG parameters
+a = 0x41c64e6d
+b = 0x6073
+b_1 = 0x341b944bb  # Inverse of b mod 2**34
+m = modulus = 2**32
+
+
 def seeds(seed: int = 0, frame: int = 0, limit: int = 2**32):
     """ Yields successive seeds (32 bits) up to a limit.
 
@@ -52,32 +59,81 @@ def seed_at(cycle: int) -> int:
     >>> (seed_at(2**32-1)*0x41c64e6d + 0x6073) % 2**32
     0
     """
-    m = 2**32
-    a = 0x41c64e6d
-    b = 0x6073
-    # I'm unable to find the webpage I found this method on, but it works.
-    # It seems to be related to modular exponentiation
+    global a, b, m
+    # See https://www.nayuki.io/page/fast-skipping-in-a-linear-congruential-generator
     res = (a-1)*m
     return (((pow(a, cycle, res)-1) % res)//(a-1)*b) % m
-    return ((a**cycle-1)//(a-1)*b) % m
+
+
+def discrete_log(base: int, power: int, n: int):
+    """ Computes the discrete logarithm modulo 2**n.
+    
+    Returns the integer `exp` such that `base**exp % 2**n == power`.
+    
+    Should have runtime O(n^4).
+    
+    Args:
+        base (int): Discrete logarithm base.
+        power (int): Discrete logarithm power/result.
+        n (int): Modulus power of two.
+    """
+    # Pohlig-Hellman algorithm based on https://crypto.stackexchange.com/a/43819
+    assert(n >= 3)  # Primitive roots exist when n < 3
+    a, c, m = base, power, 2**n
+    k = n - 2  # Maximal order for m is 2**(n-2)
+    b, bit = 0, 1
+    for i in range(k-1, -1, -1):
+        l = pow(c, 2**i, m)
+        r_e = 0
+        for j in range(i, k-1):
+            r_e += (b >> j-i & 1) << j
+        r = pow(a, r_e, m)
+        if l != r:
+            b |= bit
+        bit <<= 1
+    return b
 
 
 def cycles_to(seed: int):
-    """ Find the number of RNG cycles needed to get a seed, starting from 0.
+    """ Find the RNG cycle a seed occurs on, starting from seed 0 at cycle 0.
 
     Args:
         seed (int): Seed to match.
 
     Returns:
-        int: The frame that seed occurs on.
+        int: The cycle the seed occurs on.
     >>> cycles_to(0)
     0
     >>> cycles_to(0x6073)
     1
+    >>> cycles_to(seed_at(10000))
+    10000
+    >>> cycles_to(seed_at(2**32 - 1))
+    4294967295
     """
+    global a, b, b_1, m
+    assert(b * b_1 % (4*m) == 1)
+    # Max order of the 2**34 group is 2**32,
+    # because `a % 8 == 5`, so using 4*m gives a single solution.
+    # See https://en.wikipedia.org/wiki/Linear_congruential_generator#m_a_power_of_2,_c_=_0
+    # Solves `seed*(a-1)/b + 1 == a^n mod 4*m` for n
+    # See https://www.nayuki.io/page/fast-skipping-in-a-linear-congruential-generator
+    power = (seed * (a - 1) * b_1 + 1) % (4*m)  # b_1 is the modular inverse of b mod 2**34
+    return discrete_log(a, power, 32+2)
+    # Old brute-force method
     for i, seed2 in enumerate(seeds()):
         if seed2 == seed:
             return i
+
+
+def test_cycles():
+    for i, seed in enumerate(seeds()):
+        j = cycles_to(seed)
+        if i != j:
+            print(f'!{seed:X}: {i} != {j}')
+        if i % 10000000 == 0:
+            print(i)
+    print('Done')
 
 
 def choose_land_index(rng):  # pick a wild mon index TODO: Move this
@@ -259,4 +315,3 @@ gender_thresholds = {'1:7': 225, '1:3': 191, '1:1': 127, '3:1': 63, '7:1': 31}
 if __name__ == "__main__":
     import doctest
     doctest.testmod()
-    nocrit_seek(0x9649A84C, limit=100)
