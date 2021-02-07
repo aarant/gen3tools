@@ -1,4 +1,4 @@
-""" Gen3 RNG tools. """
+""" Gen3 RNG Library. """
 from itertools import islice
 
 from pokemon import BoxMon
@@ -7,9 +7,10 @@ from pokemon import BoxMon
 # RNG parameters
 a = 0x41c64e6d
 b = 0x6073
-b_1 = 0x341b944bb  # Inverse of b mod 2**34
 m = modulus = 2**32
-
+b_1 = 0x341b944bb  # Inverse of b mod 2**34
+assert(b * b_1 % (4*m) == 1)
+cycle_part_product = (a - 1) * b_1 % (4*m)  # Partial product used in `cycles_to`
 
 def seeds(seed: int = 0, frame: int = 0, limit: int = 2**32):
     """ Yields successive seeds (32 bits) up to a limit.
@@ -67,29 +68,31 @@ def seed_at(cycle: int) -> int:
 
 def discrete_log(base: int, power: int, n: int):
     """ Computes the discrete logarithm modulo 2**n.
-    
+
     Returns the integer `exp` such that `base**exp % 2**n == power`.
-    
+
     Should have runtime O(n^4).
-    
+
     Args:
         base (int): Discrete logarithm base.
         power (int): Discrete logarithm power/result.
         n (int): Modulus power of two.
     """
     # Pohlig-Hellman algorithm based on https://crypto.stackexchange.com/a/43819
+    # Solves a**b % 2**n == c for b
     assert(n >= 3)  # Primitive roots exist when n < 3
     a, c, m = base, power, 2**n
     k = n - 2  # Maximal order for m is 2**(n-2)
-    b, bit = 0, 1
+    b, bit, bitmask = 0, 1, 2**(k-1) - 1
+    l, ls = c, [c]
+    for _ in range(k-1):  # Pre-compute all c**(2**i), since c**(2**2) == c**(2**1) * c**(2**1) and so on
+        l = l * l % m
+        ls.append(l)
     for i in range(k-1, -1, -1):
-        l = pow(c, 2**i, m)
-        r_e = 0
-        for j in range(i, k-1):
-            r_e += (b >> j-i & 1) << j
-        r = pow(a, r_e, m)
-        if l != r:
-            b |= bit
+        # left, right = pow(c, 2**i, m), pow(a, sum(b_j*2**(i+j) for j in range(k-i)), m)
+        # Try b_i = 0; if left and right sides don't match, set b_i = 1
+        if ls[i] != pow(a, b << i & bitmask, m):
+            b += bit
         bit <<= 1
     return b
 
@@ -111,14 +114,13 @@ def cycles_to(seed: int):
     >>> cycles_to(seed_at(2**32 - 1))
     4294967295
     """
-    global a, b, b_1, m
-    assert(b * b_1 % (4*m) == 1)
+    global a, cycle_part_product, m
     # Max order of the 2**34 group is 2**32,
     # because `a % 8 == 5`, so using 4*m gives a single solution.
     # See https://en.wikipedia.org/wiki/Linear_congruential_generator#m_a_power_of_2,_c_=_0
     # Solves `seed*(a-1)/b + 1 == a^n mod 4*m` for n
     # See https://www.nayuki.io/page/fast-skipping-in-a-linear-congruential-generator
-    power = (seed * (a - 1) * b_1 + 1) % (4*m)  # b_1 is the modular inverse of b mod 2**34
+    power = (seed * cycle_part_product + 1) % (4*m)
     return discrete_log(a, power, 32+2)
     # Old brute-force method
     for i, seed2 in enumerate(seeds()):
@@ -126,7 +128,30 @@ def cycles_to(seed: int):
             return i
 
 
-def test_cycles():
+def test_discrete_log():
+    global a
+    import time
+    import random
+    iterations = 2*10**4
+    exponents = [random.randrange(2**32) for _ in range(iterations)]
+    powers = [pow(a, n, 2**34) for n in exponents]
+    # Test correctness
+    print('Testing discrete log')
+    for i in range(min(len(exponents), 100)):
+        n = exponents[i]
+        n2 = discrete_log(a, powers[i], 34)
+        if n != n2:
+            raise Exception(f'{a:x}^{n:x} {powers[i]:x}, n != {n2:x}')
+    print('Timing discrete log')
+    start = time.time()
+    for power in powers:
+        n = discrete_log(a, power, 34)
+    duration = time.time()-start
+    print(f'{duration:2f} seconds, {iterations/duration:2f} i/s')
+    return duration
+
+
+def test_cycles_to():
     for i, seed in enumerate(seeds()):
         j = cycles_to(seed)
         if i != j:
