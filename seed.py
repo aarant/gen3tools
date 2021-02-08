@@ -66,22 +66,37 @@ def seed_at(cycle: int) -> int:
     return (((pow(a, cycle, res)-1) % res)//(a-1)*b) % m
 
 
-def discrete_log(base: int, power: int, n: int):
+def discrete_log(base: int, power: int, n: int, check_exists: bool = True):
     """ Computes the discrete logarithm modulo 2**n.
-
-    Returns the integer `exp` such that `base**exp % 2**n == power`.
 
     Should have runtime O(n^4).
 
     Args:
-        base (int): Discrete logarithm base.
-        power (int): Discrete logarithm power/result.
-        n (int): Modulus power of two.
+        base (int): Discrete logarithm base. Must be odd.
+        power (int): Discrete logarithm power/result. Must be odd.
+        n (int): Modulus power of 2. Must be >= 3.
+        check_exists (bool): Whether to check for discrete logarithm existence first. Defaults to `True`.
+
+    Raises:
+        ValueError: If `check_exists` is `True` and no discrete logarithm exists for the parameters.
+
+    Returns:
+        int: The integer `exp` such that `0 <= exp < 2**(n-2)` and `base**exp % 2**n == power`.
     """
     # Pohlig-Hellman algorithm based on https://crypto.stackexchange.com/a/43819
     # Solves a**b % 2**n == c for b
-    assert(n >= 3)  # Primitive roots exist when n < 3
     a, c, m = base, power, 2**n
+    assert(a % 2 == c % 2 == 1)  # Only valid for odd a, c
+    assert(n >= 3)  # Primitive roots exist when n < 3
+    if check_exists:  # Check for discrete logarithm existence
+        m1 = m >> 1  # 2**(n-1)
+        mod_switch = a % 4 == 3  # Whether a is 3 mod 4, or 1 mod 4 (if False)
+        for k in range(n-1, 1, -1):  # Check the highest power of 2 s.t a % 2**k == 1 or a**2 % 2**k == 1
+            if (a * a % m1 == 1) if mod_switch else a % m1 == 1:
+                if (c % m1 in (a, 1)) if mod_switch else c % m1 == 1:
+                    break
+                raise ValueError(f'No logarithm b exists for {a}**b % 2**{n} == {c}')
+            m1 >>= 1
     k = n - 2  # Maximal order for m is 2**(n-2)
     b, bit, bitmask = 0, 1, 2**(k-1) - 1
     l, ls = c, [c]
@@ -98,7 +113,9 @@ def discrete_log(base: int, power: int, n: int):
 
 
 def cycles_to(seed: int):
-    """ Find the RNG cycle a seed occurs on, starting from seed 0 at cycle 0.
+    """ Finds the RNG cycle a seed occurs on, starting from seed 0 at cycle 0.
+
+    Inverse of `seed_at`. For all `n` where `0 <= n < 2**32`, `cycles_to(seed_at(n)) == n`.
 
     Args:
         seed (int): Seed to match.
@@ -121,7 +138,7 @@ def cycles_to(seed: int):
     # Solves `seed*(a-1)/b + 1 == a^n mod 4*m` for n
     # See https://www.nayuki.io/page/fast-skipping-in-a-linear-congruential-generator
     power = (seed * cycle_part_product + 1) % (4*m)
-    return discrete_log(a, power, 32+2)
+    return discrete_log(a, power, 32+2, check_exists=False)  # Log existence guaranteed b.c a % 4 == power % 4 == 1
     # Old brute-force method
     for i, seed2 in enumerate(seeds()):
         if seed2 == seed:
@@ -145,7 +162,7 @@ def test_discrete_log():
     print('Timing discrete log')
     start = time.time()
     for power in powers:
-        n = discrete_log(a, power, 34)
+        n = discrete_log(a, power, 34, check_exists=False)
     duration = time.time()-start
     print(f'{duration:2f} seconds, {iterations/duration:2f} i/s')
     return duration
@@ -340,3 +357,4 @@ gender_thresholds = {'1:7': 225, '1:3': 191, '1:1': 127, '3:1': 63, '7:1': 31}
 if __name__ == "__main__":
     import doctest
     doctest.testmod()
+    test_discrete_log()
