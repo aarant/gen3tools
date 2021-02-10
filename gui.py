@@ -214,7 +214,8 @@ class GuiWindow(Ui_MainWindow):
         table = self.frameTable
         table.horizontalHeaderItem(3).setText('Slot')
         table.horizontalHeaderItem(4).setText('PID')
-        for i, base, slot, pid in wild_mons(seed, rate=self.rate.value(), diff=diff, bike=bike, slots=slots):
+        for i, base, slot, pid in wild_mons(seed, rate=self.rate.value(), diff=diff, bike=bike, slots=slots,
+                                            limit=self.limit.value()):
             row = table.rowCount()
             table.insertRow(row)
             table.setItem(row, 0, QtWidgets.QTableWidgetItem(f'{base:08X}'))
@@ -269,13 +270,11 @@ class GuiWindow(Ui_MainWindow):
             else:
                 path = base + '.bin'
         if '*.pk3' in filetype:
-            # TODO: Process for PKHeX
             self.decrypt()
             buffer = self.mon.to_pk3()
         else:
             self.encrypt()
             buffer = bytes(self.mon)
-        print(path)
         with open(path, 'wb') as f:
             f.write(buffer)
 
