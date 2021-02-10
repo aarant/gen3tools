@@ -234,8 +234,15 @@ def find_best_tid():
 
 
 def abra_search(seed, cycle, diff=False):
-    for i, base, pid in wild_mons(seed, diff=diff, slots={3}):
+    for i, base, _, pid in wild_mons(seed, diff=diff, slots={3}):
         print(f'{i+cycle:5d} {base:08X} {pid:08X}')
+
+
+def spinda_search(frame=0):  # Search for corruptible spinda encounters
+    spinda_slots = {0,1,3,4,6,8,10}
+    for offset, base, _, pid in wild_mons(cycle=frame, rate=20, slots=None, limit=10000):
+        if pid == 0x36AA860E:  #species_corruptible(pid):
+            print(f'{offset:05d} {base:08X} {pid:08X}')
 
 
 if __name__ == '__main__':
@@ -278,4 +285,6 @@ if __name__ == '__main__':
     # # wally_zigzagoon(0xc322364a, 29399)
     # wally_zigzagoon(0x18536609, 29500)
     # print(29533-29399)
-    abra_search(0xe5f96e8b, 72046, diff=False)
+    # abra_search(0xe5f96e8b, 72046, diff=False)
+
+    spinda_search(0)

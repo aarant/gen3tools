@@ -194,7 +194,7 @@ def analyze_id(seed: int, otId: int, cycle: int):
         print(f'{i+cycle:>5} {r_nature[pid % 25]} {pid:08x}{c_str} {evs}')
     print('Bootstrap')
     triples = list(wild_mons(seed, MUDKIP+10000, 60*60*60))
-    pairs = [(t[0], t[2]) for t in triples]
+    pairs = [(t[0], t[-1]) for t in triples]
     min_total = 100
     for total, i, pid, evs, address, pos in bootstrap_names(otId, pairs):
         if total < min_total:
@@ -202,7 +202,7 @@ def analyze_id(seed: int, otId: int, cycle: int):
             box, index = divmod(pos, 30)
             print(f'{i+cycle:>6} {pid:08x} {total} {evs} {address:08x} Box {box+1} {index+1}')
     triples = list(wild_mons(seed, MUDKIP+10000, 60*60*60, slots={3}))
-    pairs = [(t[0], t[2]) for t in triples]
+    pairs = [(t[0], t[-1]) for t in triples]
     print(f'Abra/glitch: {len(list(glitch_move(otId, pairs)))} PIDs')
 
 
@@ -230,7 +230,7 @@ def explore_ids(seed, tid, cycle, limit=70):
         #         print(f'{i+cycle:>6} {pid:08x} {total} {evs} {address:08x} Box {box+1} {index+1}')
         print('Bootstrap (Wild-pure)')
         triples = wild_mons(base, MUDKIP+15000, 60*60*60, diff=True)
-        pairs = ((t[0], t[2]) for t in triples)
+        pairs = ((t[0], t[-1]) for t in triples)
         for total, i, pid, evs, address, pos in bootstrap_names(otId, pairs):
             if total < 50:
                 box, index = divmod(pos, 30)

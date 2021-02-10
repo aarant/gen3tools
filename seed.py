@@ -12,6 +12,7 @@ b_1 = 0x341b944bb  # Inverse of b mod 2**34
 assert(b * b_1 % (4*m) == 1)
 cycle_part_product = (a - 1) * b_1 % (4*m)  # Partial product used in `cycles_to`
 
+
 def seeds(seed: int = 0, frame: int = 0, limit: int = 2**32):
     """ Yields successive seeds (32 bits) up to a limit.
 
@@ -168,16 +169,6 @@ def test_discrete_log():
     return duration
 
 
-def test_cycles_to():
-    for i, seed in enumerate(seeds()):
-        j = cycles_to(seed)
-        if i != j:
-            print(f'!{seed:X}: {i} != {j}')
-        if i % 10000000 == 0:
-            print(i)
-    print('Done')
-
-
 def choose_land_index(rng):  # pick a wild mon index TODO: Move this
     rand = next(rng) % 100
     if rand < 20:
@@ -207,13 +198,13 @@ def choose_land_index(rng):  # pick a wild mon index TODO: Move this
 
 
 def wild_mons(seed=0, cycle=0, limit=1000, diff=False, bike=False, rate=20, slots=None):
-    """ Yield (cycle, seed, pid) tuples for wild pokemon encounters.
+    """ Yield (cycle, seed, slot, pid) tuples for wild pokemon encounters.
 
-    Seed is the value of the RNG on the frame *before* the tile transition.
+    Seed is the RNG state on the frame *before* the tile transition.
 
     Args:
         seed (int): Starting value for RNG. Defaults to 0.
-        cycle (int): Cycles to skip. Defaults to 0.
+        cycle (int): Cycles/frames to skip. Defaults to 0.
         limit (int): Limit of cycles to search through. Defaults to 1000.
         diff (bool): If the previous and current metatile behaviors differ. Defaults to False.
         bike (bool): If the bike is being ridden. Defaults to False.
@@ -242,7 +233,50 @@ def wild_mons(seed=0, cycle=0, limit=1000, diff=False, bike=False, rate=20, slot
             high = next(rng)
             pid = (high << 16) | low
             first = False
-        yield i, base, pid
+        yield i, base, slot, pid
+
+
+def cycles_to_wild_pid(pid: int, rate: int = 20):  # Yields a set of (cycle, base) tuples generating a wild PID
+    high, low = (pid >> 16), pid & 0xffff
+    init_state = low << 16
+    states0 = set()
+    # Find PID generating state
+    for low_state in range(2**16):
+        pid_state = init_state | low_state
+        rng = rand(pid_state, 1)
+        if next(rng) == high:
+            states0.add(pid_state)
+    # Find nature generating state
+    states1 = set()
+    nature = pid % 25
+    for seed in states0:
+        nature_seed = 0xffffffff & (seed - 0x6073) * 0xeeb9eb65
+        for _ in range(1000):
+            if (nature_seed >> 16) % 25 == nature:
+                states1.add(nature_seed)
+            high_seed = seed = 0xffffffff & (seed - 0x6073) * 0xeeb9eb65
+            low_seed = seed = 0xffffffff & (seed - 0x6073) * 0xeeb9eb65
+            pid = ((high_seed >> 16) << 16) | (low_seed >> 16)
+            if pid % 25 == nature:  # If this occurs, this PID would have been the result
+                break
+            nature_seed = 0xffffffff & (seed - 0x6073) * 0xeeb9eb65
+    # Roll back to local encounter check
+    states0 = set()
+    for seed in states1:
+        seed = 0xffffffff & (seed - 0x6073) * 0xeeb9eb65  # Level seed
+        seed = 0xffffffff & (seed - 0x6073) * 0xeeb9eb65  # Slot seed
+        seed = 0xffffffff & (seed - 0x6073) * 0xeeb9eb65  # local encounter seed
+        states0.add(seed)
+    # Check for local encounter
+    states1 = set()
+    rate *= 16
+    rate = min(rate, 2880)
+    for local_seed in states0:
+        if (local_seed >> 16) % 2880 < rate:  # Roll back twice
+            local_seed = 0xffffffff & (local_seed - 0x6073) * 0xeeb9eb65
+            local_seed = 0xffffffff & (local_seed - 0x6073) * 0xeeb9eb65
+            states1.add(local_seed)
+    return {(cycles_to(seed), seed) for seed in states1}
 
 
 def method1_mons(seed=0, cycle=0, limit=1000):

@@ -208,19 +208,19 @@ class GuiWindow(Ui_MainWindow):
         diff = self.diff.checkState() != 0
         bike = self.bike.checkState() != 0
         if self.slots.text():
-            slots = {int(s) for s in self.slots.text().split(',')}
+            slots = {int(s.strip()) for s in self.slots.text().split(',')}
         else:
             slots = None
         table = self.frameTable
         table.horizontalHeaderItem(3).setText('Slot')
         table.horizontalHeaderItem(4).setText('PID')
-        for i, base, pid in wild_mons(seed, rate=self.rate.value(), diff=diff, bike=bike, slots=slots):
+        for i, base, slot, pid in wild_mons(seed, rate=self.rate.value(), diff=diff, bike=bike, slots=slots):
             row = table.rowCount()
             table.insertRow(row)
             table.setItem(row, 0, QtWidgets.QTableWidgetItem(f'{base:08X}'))
             table.setItem(row, 1, QtWidgets.QTableWidgetItem(f'{i+self.cycle.value()}'))
             table.setItem(row, 2, QtWidgets.QTableWidgetItem(f'{i}'))
-            # TODO: Add Slot
+            table.setItem(row, 3, QtWidgets.QTableWidgetItem(f'{slot}'))
             table.setItem(row, 4, QtWidgets.QTableWidgetItem(f'{pid:08X}'))
 
     def load_raw(self):
@@ -413,6 +413,7 @@ def main():
     MainWindow = QtWidgets.QMainWindow()
     ui = GuiWindow()
     ui.setupUi(MainWindow)
+    ui.frameTable.clipboard = app.clipboard()
     MainWindow.show()
     sys.exit(app.exec_())
 
