@@ -286,7 +286,9 @@ box_13: (FNRob ?n)
 bic r12,C00000      E3CCC8C0 @ r12=81377A7
 bic r0,r12,D6       E2AC00D6 @ r0=SetCB2WhiteOut
 ```
-### 0x40E9 Zero PID & TID
+### 0x40E9 Zero PID & TID & Ensure Misalignment
+- Ensures PC mis-alignment
+- Jumps to next slot's nickname
 - Place in Box 10 Slot 20
 - 0206f280 - 0206f24b = 0x34
 ```
@@ -302,16 +304,29 @@ POP r2-r3,r5-r7,pc      BDEC
 box_03: (?”4CUn  )
                     B2ACFF00
 sbc r11,pc,0x2940   E2CFBDA5 @ r11=&PID-0x34
-box_04: (E’2Qm   )
+box_04: (E♀2Qm   )
                     BFFF0000
-strh r3,[r11+52]    E1CBA3B4
+strh r10,[r11+54]   E1CBA3B6
                     FF000000
-box_05: (♀2Qm,2Qm)
-strh r3,[r11+54]    E1CBA3B6
-strh r3,[r11+56]    E1CBA3B8
-box_06: ( ?”/2Qm )
+box_05: (,2Qm/2Qm)
+strh r10,[r11+56]   E1CBA3B8
+strh r10,[r11+58]   E1CBA3BA
+box_06: ( ?”A2wm )
                     B2AC00FF
-strh r3,[r11+58]    E1CBA3BA
+strh! r10,[r11+59]  E1EBA3BB
+box_07: (?”DFwm  )
+                    B2ACFF00
+strh! r12,[r11+14]  E1EBC0BE @ r11=&OT
+box_08: (ExU…o   )
+                    BFFF0000
+movs r12,0x3B0      E3B0CFEC @ r12=000003B0   
+                    FF000000
+box_09: (kN?nzH?n)
+adc r12,0xDF0000    E2ACC8DF @ r12=00DF03B0
+adc r12,0xEE>>4     E2ACC2EE @ r12=E0DF03BE (ldrh! r12, [pc+xx])
+box_10: ( ?” F!q )
+                    B2AC00FF
+str r12,[r11]       E5ABC000 @ store OT
 ```
 ### 0x611 Change DOTS to 0x40E9
 - Place DOTS in Box 10 Slot 19
@@ -733,6 +748,7 @@ box_10: ( ?”5…Bq ) @ 5, not S
 LDR r11,[r12+A6]    E5BCB0A6 +24 @ r12=saveBlock1
 ```
 ### Thumb -> ARM Bootstrap (nickname)
+- Change ” to _ (space) if using OT as an instruction
 ```
 box_12_04: @ (x♂zN”6FFxC)
 PUSH r2-r3,r5-r7,lr       B5EC @ preserve necessary registers
