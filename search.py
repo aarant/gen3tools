@@ -58,8 +58,8 @@ def front_sprite_callback(f, species: int):  # Calculate sprite callback address
     tAnimId = read(f, 0x083299ec+species-1, 1)
     target = read(f, 0x0860aa88+4*tAnimId)
     # FR
-    tAnimId = read(f, 0x0833155C+species-1, 1)
-    target = read(f, 0x0860EE10+4*tAnimId)
+    # tAnimId = read(f, 0x0833155C+species-1, 1)
+    # target = read(f, 0x0860EE10+4*tAnimId)
 
     # target = canonicalize(target)
     # print(f'{target:08X}')
@@ -99,7 +99,7 @@ def list_front_sprite_callbacks(f):
             hp = species & 0xff
             at = (species >> 8) & 0xff
             l.append((species, target, hp, at))
-    l.sort(key=lambda tup: tup[2]+tup[3])
+    l.sort(key=lambda tup: tup[0])
     for species, target, hp, at in l:
         print(f'{species:04x} = {target:08x} ({hp:03d} HP {at:03d} AT)')
 
@@ -173,5 +173,5 @@ def read(f, addr: int, size: int = 4, signed: bool = False):
 
 
 if __name__ == '__main__':
-    with open('/home/ariel/Desktop/pokeemerald-fr.gba', 'rb') as f:
+    with open('../pokeemerald/pokeemerald.gba', 'rb') as f:
         list_front_sprite_callbacks(f)

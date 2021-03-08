@@ -94,31 +94,33 @@
 
 ## Front Sprite ACE Targets
 ```
-Species Address  EVs
-085B =  0206FFFF (091 HP 008 AT)
-08B7 =  0206FFFF (183 HP 008 AT)
-0A8C =  0206FFFF (140 HP 010 AT)
-40E9 =  0206FFFF (233 HP 064 AT) - Works when hatching or viewed in summary
-45BB =  0206FFFF (187 HP 069 AT)
-E692 =  0206FFFF (146 HP 230 AT)
-
-0525 =  02FE0600 (037 HP 005 AT)
-0599 =  0206FEFE (153 HP 005 AT)
-0611 =  0206FEFE (017 HP 006 AT) - (Only when hatching)
-0673 =  82847F80 (115 HP 006 AT)
-0737 =  82847F80 (055 HP 007 AT)
-0799 =  0206FEFE (153 HP 007 AT)
-09F7 =  02020000 (247 HP 009 AT)
-0A04 =  02FE0600 (004 HP 010 AT)
-0A3B =  0206FEFE (059 HP 010 AT)
-0A3E =  02020000 (062 HP 010 AT)
-0A5E =  0206FEFE (094 HP 010 AT)
-0A7B =  02FE0600 (123 HP 010 AT)
-0AAA =  02FE0600 (170 HP 010 AT)
-0B15 =  02020000 (021 HP 011 AT)
-0B50 =  82847F80 (080 HP 011 AT)
-0B59 =  0206FEFE (089 HP 011 AT)
-0B99 =  02FE0600 (153 HP 011 AT)
+Species Nat Addr EVS
+0599 = 0206fefe (153 HP 005 AT)
+0611 = 0206fefe (017 HP 006 AT) - lowest EV total, only works while hatching
+0799 = 0206fefe (153 HP 007 AT)
+085b = 0206ffff (091 HP 008 AT)
+08b7 = 0206ffff (183 HP 008 AT)
+0a3b = 0206fefe (059 HP 010 AT)
+0a5e = 0206fefe (094 HP 010 AT)
+0a8c = 0206ffff (140 HP 010 AT)
+0b59 = 0206fefe (089 HP 011 AT)
+40e9 = 0206ffff (233 HP 064 AT) - Works when hatching or from summary, needs THUMB->ARM bootstrap
+410e = 0206fefe (014 HP 065 AT)
+4111 = 0206fefe (017 HP 065 AT)
+4115 = 0206fefe (021 HP 065 AT)
+4135 = 0206fefe (053 HP 065 AT)
+4167 = 0206fefe (103 HP 065 AT) - Works from summary, but not on the main summary page
+45bb = 0206ffff (187 HP 069 AT)
+e62e = 0206fefe (046 HP 230 AT)
+e692 = 0206ffff (146 HP 230 AT)
+e8f1 = 0206fefe (241 HP 232 AT)
+ea0e = 0206fefe (014 HP 234 AT)
+ea11 = 0206fefe (017 HP 234 AT)
+f425 = 0206fefe (037 HP 244 AT)
+fdf1 = 0206fefe (241 HP 253 AT)
+fe2f = 0206fefe (047 HP 254 AT)
+feb6 = 0206fefe (182 HP 254 AT)
+fefb = 0206fefe (251 HP 254 AT)
 ```
 
 ## Front Sprite ACE Targets (FR)
